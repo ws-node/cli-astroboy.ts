@@ -1,16 +1,7 @@
-import {
-  CmdConfig,
-  createCmdConfig,
-  mergeCmdConfig,
-  RouterConfig as RConfig,
-  IENV as E
-} from "./base";
+import { CmdConfig, createCmdConfig, IENV as E, mergeCmdConfig, RouterConfig as RConfig } from "./base";
+import { compileFn, IConfigCompilerOptions } from "./builders/config-compiler";
+import { IMiddlewareCompilerOptions, middlewareCompileFn } from "./builders/middleware-cmp";
 import { initRouters } from "./builders/routers";
-import { compileFn, ConfigCompilerOptions } from "./builders/config-compiler";
-import {
-  MiddlewareCompilerOptions,
-  middlewareCompileFn
-} from "./builders/middleware-cmp";
 
 interface IPreProcess {
   /** 是否自动生成2.0的routers，默认：`false` */
@@ -45,9 +36,9 @@ export function preInitFn(configs: Partial<IPreProcess>, inEnd?: any) {
  * * 硬核初始化config
  * @author Big Mogician
  * @export
- * @param {Partial<ConfigCompilerOptions>} configs
+ * @param {Partial<IConfigCompilerOptions>} configs
  */
-export function preConfigCompiler(configs: Partial<ConfigCompilerOptions>) {
+export function preConfigCompiler(configs: Partial<IConfigCompilerOptions>) {
   return compileFn(configs);
 }
 
@@ -56,25 +47,23 @@ export function preConfigCompiler(configs: Partial<ConfigCompilerOptions>) {
  * * 硬核初始化middleware
  * @author Big Mogician
  * @export
- * @param {Partial<MiddlewareCompilerOptions>} configs
+ * @param {Partial<IMiddlewareCompilerOptions>} configs
  */
-export function preMiddlewareCompiler(
-  configs: Partial<MiddlewareCompilerOptions>
-) {
+export function preMiddlewareCompiler(configs: Partial<IMiddlewareCompilerOptions>) {
   return middlewareCompileFn(configs);
 }
 
-export interface Env extends E {}
-export interface RouterConfig extends RConfig {}
-export interface Config extends CmdConfig {
-  env?: Env;
-  routers?: RouterConfig;
+export interface IEnv extends E {}
+export interface IRouterConfig extends RConfig {}
+export interface IConfig extends CmdConfig {
+  env?: IEnv;
+  routers?: IRouterConfig;
 }
 
-export function create(config: Config) {
+export function create(config: IConfig) {
   return createCmdConfig(config);
 }
 
-export function merge(merge: Config, config: Config) {
-  return mergeCmdConfig(merge, config);
+export function merge(mergeO: IConfig, config: IConfig) {
+  return mergeCmdConfig(mergeO, config);
 }

@@ -1,7 +1,7 @@
-import { ChildProcess, spawn, exec, fork } from "child_process";
+import { ChildProcess, exec, fork, spawn } from "child_process";
 import { CancellationToken } from "./cancellation-token";
 
-export interface ChildProcessContext {
+export interface IChildProcessContext {
   type: "spawn" | "exec" | "fork";
   command?: string;
   args?: string[];
@@ -23,7 +23,7 @@ export function startChildProcess({
   ignoreArgs = false,
   token = undefined,
   defineCancel = undefined
-}: ChildProcessContext): Promise<number> {
+}: IChildProcessContext): Promise<number> {
   return new Promise((resolve, reject) => {
     let child: ChildProcess;
     const useCancel = token && defineCancel;
@@ -41,34 +41,26 @@ export function startChildProcess({
       } else if (type === "fork" || useCancel) {
         child = fork(script, args, { env: ENV });
       } else {
-        child = exec(
-          `${command} ${args.join(" ")}`,
-          { env: ENV },
-          (error, stdout, stderr) => {
-            if (error) return reject(error);
-            if (stderr) {
-              return reject(
-                new Error(`child process exit with error ${stderr}`)
-              );
-            }
-            return resolve(0);
+        child = exec(`${command} ${args.join(" ")}`, { env: ENV }, (error, stdout, stderr) => {
+          if (error) return reject(error);
+          if (stderr) {
+            return reject(new Error(`child process exit with error ${stderr}`));
           }
-        );
+          return resolve(0);
+        });
       }
     } catch (error) {
       return reject(error);
     }
     if (useCancel) {
-      defineCancel(child, token);
+      defineCancel && defineCancel(child, token!);
     }
     if (type !== "spawn") return;
     child.on("exit", (code, signal) => {
       if (code === 0) {
         resolve(code);
       } else {
-        reject(
-          new Error(`child process exit with code ${code} [${signal || "-"}]`)
-        );
+        reject(new Error(`child process exit with code ${code} [${signal || "-"}]`));
       }
     });
   });

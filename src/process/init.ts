@@ -1,17 +1,10 @@
-import { preInitFn } from "../cmd";
 import chalk from "chalk";
+import { preInitFn } from "../cmd";
 
-const {
-  CTOR_PATH,
-  ROUTER_PATH,
-  ASTT_ENABLED,
-  ASTT_ALWAYS,
-  APP_ROOT,
-  FILE_TYPE,
-  SHOW_ROUTERS
-} = process.env;
+// tslint:disable: no-console
 
-// @ts-ignore
+const { CTOR_PATH, ROUTER_PATH, ASTT_ENABLED, ASTT_ALWAYS, APP_ROOT, FILE_TYPE, SHOW_ROUTERS } = process.env;
+
 preInitFn(
   {
     enabled: ASTT_ENABLED === "true",
@@ -21,6 +14,7 @@ preInitFn(
     ctorFolder: CTOR_PATH,
     routerFolder: ROUTER_PATH
   },
+  // @ts-ignore
   ({ routers, error }: any) => {
     if (error) {
       throw error;

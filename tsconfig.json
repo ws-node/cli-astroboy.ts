@@ -1,0 +1,18 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "strict": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "lib": ["es5", "es2015", "es2016", "es2017"],
+    "outDir": "./dist"
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "scripts"]
+}

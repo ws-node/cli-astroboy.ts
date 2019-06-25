@@ -1,20 +1,23 @@
-import path from "path";
-import fs from "fs";
 import chalk from "chalk";
-import ts from "typescript";
+import childProcess, { ChildProcess, spawn } from "child_process";
+import * as chokidar from "chokidar";
+import fs from "fs";
+// @ts-ignore no typings
+import kill = require("kill-port");
 import get from "lodash/get";
 import throttle from "lodash/throttle";
-import * as chokidar from "chokidar";
-import kill = require("kill-port");
-import childProcess, { ChildProcess, spawn } from "child_process";
+import path from "path";
+import ts from "typescript";
 import { CommandPlugin, IntergradeOptions } from "../base";
 import { CancellationToken } from "../utils/cancellation-token";
-import { NormalizedMessage } from "../utils/normalized-msg";
 import { loadConfig } from "../utils/load-config";
+import { NormalizedMessage } from "../utils/normalized-msg";
+import { TRANSFROM } from "../utils/transform";
 import { runConfigCompile } from "./config";
 import { runMiddlewareCompile } from "./middleware";
 import { runRoutersBuilder } from "./routers";
-import { TRANSFROM } from "../utils/transform";
+
+// tslint:disable: no-console
 
 const STATR_BASH = "🎩 - START APP BASH";
 const WATCHING = "👀 - WATCHING";
@@ -39,7 +42,7 @@ export interface IDevCmdOptions {
   compile: boolean;
 }
 
-interface ForkCmdOptions {
+interface IForkCmdOptions {
   command: string;
   args: string[];
   env: any;
@@ -60,10 +63,7 @@ export const DevPlugin: CommandPlugin = {
     ["-D, --debug [debugName]", "开启 debug 模式"],
     ["-E, --env [NODE_ENV]", "设置 NODE_ENV 环境变量，默认 development"],
     ["-P, --port [NODE_PORT]", "设置 NODE_PORT 环境变量，默认 8201"],
-    [
-      "-M, --mock [proxyUrl]",
-      "开启 mock 模式，默认 proxy 地址为 http://127.0.0.1:8001"
-    ],
+    ["-M, --mock [proxyUrl]", "开启 mock 模式，默认 proxy 地址为 http://127.0.0.1:8001"],
     ["-T, --tsconfig [config]", "使用自定义的ts编译配置文件"],
     ["-I, --inspect [inspect]", "启用inspector，开启编辑器断点调试"],
     ["--compile", "启用编译"]
@@ -87,7 +87,7 @@ export const DevPlugin: CommandPlugin = {
   },
   async action(_, command: IDevCmdOptions) {
     if (_ !== "dev") return;
-    return await action(false, command);
+    return action(false, command);
   }
 };
 
@@ -100,17 +100,13 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     return;
   }
   const fileName = command.config || "atc.config.js";
-  console.log(
-    `${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`
-  );
+  console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
   const config = loadConfig(projectRoot, fileName);
 
   if (config.env) {
     config.env = {
       ...config.env,
-      NODE_ENV: command.env
-        ? command.env
-        : config.env.NODE_ENV || "development",
+      NODE_ENV: command.env ? command.env : config.env.NODE_ENV || "development",
       NODE_PORT: command.port ? command.port : config.env.NODE_PORT || 8201
     };
   } else {
@@ -191,8 +187,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   config.env.__TSCONFIG = config.tsconfig || "-";
   // fix: for tsconfig-paths support
   config.env.TS_NODE_PROJECT = config.tsconfig || "tsconfig.json";
-  config.env.__TRANSPILE =
-    config.typeCheck && !config.transpile ? "false" : "true";
+  config.env.__TRANSPILE = config.typeCheck && !config.transpile ? "false" : "true";
 
   if (config.debug && config.debug === true) {
     config.env.DEBUG = "*";
@@ -202,20 +197,15 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
 
   const node = `node${!!config.inspect ? " --inspect" : ""}`;
 
-  let tsc_path_map = "";
-  let ts_node = "";
+  let tscPathMap = "";
+  let tsNode = "";
   try {
     const tsnode = require.resolve("ts-node");
     const registerFile = path.resolve(__dirname, "../register");
-    ts_node = `-r ${registerFile}`;
-    tsc_path_map = `-r ${require
-      .resolve("tsconfig-paths")
-      .replace("/lib/index.js", "")}/register`;
+    tsNode = `-r ${registerFile}`;
+    tscPathMap = `-r ${require.resolve("tsconfig-paths").replace("/lib/index.js", "")}/register`;
     config.env.APP_EXTENSIONS = JSON.stringify(["js", "ts"]);
-    config.exec = `${node} ${ts_node} ${tsc_path_map} ${path.join(
-      projectRoot,
-      "app/app.ts"
-    )}`;
+    config.exec = `${node} ${tsNode} ${tscPathMap} ${path.join(projectRoot, "app/app.ts")}`;
   } catch (error) {
     if ((<string>error.message || "").includes("ts-node")) {
       console.log(chalk.red("NEED TS-NODE"));
@@ -232,9 +222,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     config.env.HTTPS_PROXY = url;
   }
 
-  async function runConfigs(
-    options: IntergradeOptions<CancellationToken> = {}
-  ) {
+  async function runConfigs(options: IntergradeOptions<CancellationToken> = {}) {
     try {
       if (useConfigCompile) {
         const conf = config.configCompiler || {};
@@ -243,12 +231,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
           ...conf,
           tsconfig: conf.tsconfig || config.tsconfig
         };
-        await doActionAwait(
-          runConfigCompile,
-          projectRoot,
-          compileConf,
-          options
-        );
+        await doActionAwait(runConfigCompile, projectRoot, compileConf, options);
       }
     } catch (error) {
       console.log(chalk.red(error));
@@ -256,9 +239,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     }
   }
 
-  async function runMiddlewares(
-    options: IntergradeOptions<CancellationToken> = {}
-  ) {
+  async function runMiddlewares(options: IntergradeOptions<CancellationToken> = {}) {
     try {
       if (useMiddlewareCompile) {
         const conf = config.middlewareCompiler || {};
@@ -267,12 +248,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
           ...conf,
           tsconfig: conf.tsconfig || config.tsconfig
         };
-        await doActionAwait(
-          runMiddlewareCompile,
-          projectRoot,
-          compileConf,
-          options
-        );
+        await doActionAwait(runMiddlewareCompile, projectRoot, compileConf, options);
       }
     } catch (error) {
       console.log(chalk.red(error));
@@ -280,9 +256,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     }
   }
 
-  async function runRouters(
-    options: IntergradeOptions<CancellationToken> = {}
-  ) {
+  async function runRouters(options: IntergradeOptions<CancellationToken> = {}) {
     try {
       if (useRouterBuilds) {
         const conf = config.routers || {};
@@ -291,12 +265,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
           ...conf,
           tsconfig: conf.tsconfig || config.tsconfig
         };
-        await doActionAwait(
-          runRoutersBuilder,
-          projectRoot,
-          compileConf,
-          options
-        );
+        await doActionAwait(runRoutersBuilder, projectRoot, compileConf, options);
       }
     } catch (error) {
       console.log(chalk.red(error));
@@ -315,18 +284,12 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     return;
   }
 
-  const tsnode_host = ts_node.split(" ")[1];
-  const tspath_host = tsc_path_map.split(" ")[1];
+  const tsnodeHost = tsNode.split(" ")[1];
+  const tspathHost = tscPathMap.split(" ")[1];
 
-  const forkConfig: ForkCmdOptions = {
+  const forkConfig: IForkCmdOptions = {
     command: path.join(projectRoot, "app/app.ts"),
-    args: [
-      ...(!!config.inspect ? ["--inspect"] : []),
-      "-r",
-      tsnode_host,
-      "-r",
-      tspath_host
-    ],
+    args: [...(!!config.inspect ? ["--inspect"] : []), "-r", tsnodeHost, "-r", tspathHost],
     env: config.env,
     tsconfig: config.tsconfig,
     check: config.transpile && config.typeCheck,
@@ -371,15 +334,11 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     console.log(chalk.green(WATCHING));
     console.log("");
     for (let i = 0; i < LENGTH; i++) {
-      console.log(
-        `${i + 1} - ${chalk.yellow(config.watch[i].replace(ROOT_REGEXP, "."))}`
-      );
+      console.log(`${i + 1} - ${chalk.yellow(config.watch[i].replace(ROOT_REGEXP, "."))}`);
     }
   } else {
     console.log("");
-    console.log(
-      chalk.green(`${WATCHING} : ${chalk.yellow("nothing here...")}`)
-    );
+    console.log(chalk.green(`${WATCHING} : ${chalk.yellow("nothing here...")}`));
   }
   const LENGTH_2 = config.ignore && config.ignore.length;
   if (LENGTH_2 > 0) {
@@ -387,17 +346,11 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     console.log(chalk.green(IGNORED));
     console.log("");
     for (let i = 0; i < LENGTH_2; i++) {
-      console.log(
-        `${i + 1} - ${chalk.cyanBright(
-          config.ignore[i].replace(ROOT_REGEXP, ".")
-        )}`
-      );
+      console.log(`${i + 1} - ${chalk.cyanBright(config.ignore[i].replace(ROOT_REGEXP, "."))}`);
     }
   } else {
     console.log("");
-    console.log(
-      chalk.green(`${IGNORED} : ${chalk.cyanBright("nothing here...")}`)
-    );
+    console.log(chalk.green(`${IGNORED} : ${chalk.cyanBright("nothing here...")}`));
   }
   startMainProcess(forkConfig);
 
@@ -423,7 +376,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         if (checkProcess) {
           checkProcess.kill();
         }
-        process.kill(forkConfig.mainProcess.pid);
+        process.kill(forkConfig.mainProcess!.pid);
       } catch (error) {
         console.log(chalk.red(error));
       } finally {
@@ -436,9 +389,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
 
   async function reCompile() {
     if (useConfigHMR) {
-      const changedConfigs = forkConfig.changes.filter(i =>
-        i.startsWith(configWatchRoot)
-      );
+      const changedConfigs = forkConfig.changes.filter(i => i.startsWith(configWatchRoot));
       if (changedConfigs.length > 0) {
         console.log("");
         console.log(chalk.yellow(CONF_RELOAD));
@@ -459,9 +410,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
       }
     }
     if (useMiddlewareHMR) {
-      const changedMiddles = forkConfig.changes.filter(i =>
-        i.startsWith(middleWatchRoot)
-      );
+      const changedMiddles = forkConfig.changes.filter(i => i.startsWith(middleWatchRoot));
       if (changedMiddles.length > 0) {
         console.log("");
         console.log(chalk.yellow(MIDDLES_RELOAD));
@@ -475,7 +424,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   }
 }
 
-async function startMainProcess(config: ForkCmdOptions) {
+async function startMainProcess(config: IForkCmdOptions) {
   try {
     if (config.check) {
       config.checkProcess = startTypeCheck(config.cwd, config, config.token);
@@ -497,17 +446,12 @@ async function startMainProcess(config: ForkCmdOptions) {
       },
       stdio: ["pipe", process.stdout, process.stderr]
     });
-    return config.mainProcess;
   }
+  return config.mainProcess;
 }
 
 function doActionAwait<T>(
-  method: (
-    p: string,
-    c: T,
-    pl?: IntergradeOptions<CancellationToken>,
-    f?: (s: boolean, e?: Error) => void
-  ) => void,
+  method: (p: string, c: T, pl?: IntergradeOptions<CancellationToken>, f?: (s: boolean, e?: Error) => void) => void,
   projectRoot: string,
   config: T,
   payload: IntergradeOptions<CancellationToken>
@@ -523,11 +467,7 @@ function doActionAwait<T>(
   });
 }
 
-function startTypeCheck(
-  projectRoot: string,
-  config: ForkCmdOptions,
-  token: CancellationToken
-) {
+function startTypeCheck(projectRoot: string, config: IForkCmdOptions, token: CancellationToken) {
   console.log("");
   console.log(chalk.blue(TYPE_CHECK));
   console.log("");
@@ -551,21 +491,10 @@ function startTypeCheck(
       }
       console.log(chalk.blue(`Type Syntax Errors : ${diagnostics.length}\n`));
       diagnostics.forEach(item => {
-        const {
-          type: _,
-          code,
-          severity,
-          content,
-          file,
-          line,
-          character
-        } = item;
+        const { type: _, code, severity, content, file, line, character } = item;
         console.log(
           chalk[severity === "error" ? "red" : "yellow"](
-            `${String(
-              severity
-            ).toUpperCase()} in ${file}[${line},${character}] \nts${code ||
-              0} : ${content}\n`
+            `${String(severity).toUpperCase()} in ${file}[${line},${character}] \nts${code || 0} : ${content}\n`
           )
         );
       });

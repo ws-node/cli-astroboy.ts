@@ -1,15 +1,11 @@
+import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import ts from "typescript";
-import { loadProgramConfig, createProgram } from "../utils/type-check";
-import {
-  ICompileContext,
-  compileForEach,
-  ImportsHelper
-} from "../utils/ast-compiler";
-import chalk from "chalk";
+import { compileForEach, ICompileContext, ImportsHelper } from "../utils/ast-compiler";
+import { createProgram, loadProgramConfig } from "../utils/type-check";
 
-export interface ConfigCompilerOptions {
+export interface IConfigCompilerOptions {
   /** tsconfig, 默认：`undefined` */
   tsconfig?: string;
   /** 是否自动编译configs文件夹，默认：`false` */
@@ -22,11 +18,11 @@ export interface ConfigCompilerOptions {
   outRoot?: string;
 }
 
-export interface InnerConfigCompilerOptions extends ConfigCompilerOptions {
+export interface IInnerConfigCompilerOptions extends IConfigCompilerOptions {
   fileList?: string[];
 }
 
-export const defaultConfigCompilerOptions: ConfigCompilerOptions = {
+export const defaultConfigCompilerOptions: IConfigCompilerOptions = {
   tsconfig: undefined,
   enabled: false,
   force: false,
@@ -34,9 +30,7 @@ export const defaultConfigCompilerOptions: ConfigCompilerOptions = {
   outRoot: "config"
 };
 
-export function compileFn(
-  options: Partial<InnerConfigCompilerOptions>
-): string[] {
+export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string[] {
   const {
     enabled = false,
     force = false,
@@ -49,14 +43,8 @@ export function compileFn(
   if (!enabled) return [];
   try {
     const cwd = process.cwd();
-    const configFolder = path.resolve(
-      cwd,
-      configRoot || defaultConfigCompilerOptions.configRoot!
-    );
-    const outputFolder = path.resolve(
-      cwd,
-      outRoot || defaultConfigCompilerOptions.outRoot!
-    );
+    const configFolder = path.resolve(cwd, configRoot || defaultConfigCompilerOptions.configRoot!);
+    const outputFolder = path.resolve(cwd, outRoot || defaultConfigCompilerOptions.outRoot!);
     if (!fs.existsSync(configFolder)) fs.mkdirSync(configFolder);
     const watchedFiles = fileList.filter(findTsFiles);
     const useHMR = watchedFiles.length > 0;
@@ -67,31 +55,22 @@ export function compileFn(
     if (useHMR) {
       const valid = watchedFiles.every(p => p.startsWith(configFolder));
       if (!valid) {
-        throw new Error(
-          "Config-Compiler Error: paths of HMR changed files must startsWith configFolder."
-        );
+        throw new Error("Config-Compiler Error: paths of HMR changed files must startsWith configFolder.");
       }
     }
     const files = !useHMR
       ? initCompilePreSteps(configFolder, force, outputFolder)
       : watchedFiles.map(each => path.relative(configFolder, each));
     const compileds: string[] = [];
-    const options = loadProgramConfig(tsconfig!, {
+    const opts = loadProgramConfig(tsconfig!, {
       noEmit: true,
       skipLibCheck: true
     });
-    let program: ts.Program;
-    program = createTSCompiler(
-      options,
-      files.map(i => `${configFolder}/${i}`),
-      program
-    );
+    let program!: ts.Program;
+    program = createTSCompiler(opts, files.map(i => `${configFolder}/${i}`), program);
     files.forEach(filePath => {
       const sourcePath = `${configFolder}/${filePath}`;
-      const compiledPath = `${outputFolder}/${filePath.replace(
-        /\.ts$/,
-        ".js"
-      )}`;
+      const compiledPath = `${outputFolder}/${filePath.replace(/\.ts$/, ".js")}`;
       const file = program.getSourceFile(sourcePath);
       const context = createContext(configFolder, outputFolder);
       compileForEach(file!, context);
@@ -104,9 +83,7 @@ export function compileFn(
       } else if (typeof exports === "object") {
         const { default: excuClass, ...others } = exports;
         if (typeof excuClass !== "function") {
-          throw new Error(
-            "Config-Compiler Error: default exports must be a function."
-          );
+          throw new Error("Config-Compiler Error: default exports must be a function.");
         } else {
           finalExports = excuClass;
           Object.keys(others || {}).forEach(name => {
@@ -116,19 +93,11 @@ export function compileFn(
           });
         }
       } else {
-        throw new Error(
-          "Config-Compiler Error: exports must be a function or object."
-        );
+        throw new Error("Config-Compiler Error: exports must be a function or object.");
       }
       const imports = ImportsHelper.toList(context, "js");
-      const preRuns = [
-        "// [astroboy.ts] 自动生成的代码",
-        ...imports,
-        ...procedures
-      ];
-      const exportStr = `${preRuns.join(
-        "\n"
-      )}\nmodule.exports = (${finalExports.toString()})();`;
+      const preRuns = ["// [astroboy.ts] 自动生成的代码", ...imports, ...procedures];
+      const exportStr = `${preRuns.join("\n")}\nmodule.exports = (${finalExports.toString()})();`;
       if (!!force || !fs.existsSync(compiledPath) || useHMR) {
         fs.appendFileSync(compiledPath, exportStr, { flag: "w" });
         return compileds.push(compiledPath);
@@ -147,10 +116,7 @@ export function compileFn(
   }
 }
 
-function createContext(
-  configFolder: string,
-  outputFolder: string
-): ICompileContext {
+function createContext(configFolder: string, outputFolder: string): ICompileContext {
   return {
     main: { root: configFolder, out: outputFolder },
     imports: {},
@@ -159,11 +125,7 @@ function createContext(
   };
 }
 
-function createTSCompiler(
-  options: ts.ParsedCommandLine,
-  sourcePaths: string[],
-  program: ts.Program
-): ts.Program {
+function createTSCompiler(options: ts.ParsedCommandLine, sourcePaths: string[], program: ts.Program): ts.Program {
   return createProgram(
     {
       ...options,
@@ -173,11 +135,7 @@ function createTSCompiler(
   );
 }
 
-function initCompilePreSteps(
-  configFolder: string,
-  force: boolean,
-  outputFolder: string
-) {
+function initCompilePreSteps(configFolder: string, force: boolean, outputFolder: string) {
   const files = fs.readdirSync(configFolder);
   if (!!force && fs.existsSync(outputFolder)) {
     if (configFolder === outputFolder) {

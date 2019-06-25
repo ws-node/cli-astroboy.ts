@@ -1,17 +1,13 @@
-import path from "path";
-import fs from "fs";
-import ts from "typescript";
-import { loadProgramConfig, createProgram } from "../utils/type-check";
-import {
-  ICompileContext,
-  compileForEach,
-  IFuncParam,
-  ImportsHelper,
-  ImportStyle
-} from "../utils/ast-compiler";
 import chalk from "chalk";
+import fs from "fs";
+import path from "path";
+import ts from "typescript";
+import { compileForEach, ICompileContext, IFuncParam, ImportsHelper, ImportStyle } from "../utils/ast-compiler";
+import { createProgram, loadProgramConfig } from "../utils/type-check";
 
-export interface MiddlewareCompilerOptions {
+// tslint:disable: no-console
+
+export interface IMiddlewareCompilerOptions {
   /** tsconfig, 默认：`undefined` */
   tsconfig?: string;
   /** 是否自动编译configs文件夹，默认：`false` */
@@ -24,12 +20,11 @@ export interface MiddlewareCompilerOptions {
   outFolder?: string;
 }
 
-export interface InnerMiddlewareCompilerOptions
-  extends MiddlewareCompilerOptions {
+export interface IInnerMiddlewareCompilerOptions extends IMiddlewareCompilerOptions {
   fileList?: string[];
 }
 
-export const defaultConfigCompilerOptions: MiddlewareCompilerOptions = {
+export const defaultConfigCompilerOptions: IMiddlewareCompilerOptions = {
   enabled: false,
   force: false,
   tsconfig: undefined,
@@ -39,28 +34,13 @@ export const defaultConfigCompilerOptions: MiddlewareCompilerOptions = {
 
 type ImportsIndex = [number, string];
 
-export function middlewareCompileFn(
-  options: Partial<InnerMiddlewareCompilerOptions>
-): string[] {
-  const {
-    enabled = false,
-    force = false,
-    rootFolder,
-    outFolder,
-    tsconfig,
-    fileList = []
-  } = options;
+export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOptions>): string[] {
+  const { enabled = false, force = false, rootFolder, outFolder, tsconfig, fileList = [] } = options;
   if (!enabled) return [];
   try {
     const cwd = process.cwd();
-    const middleRootFolder = path.resolve(
-      cwd,
-      rootFolder || defaultConfigCompilerOptions.rootFolder!
-    );
-    const outputFolder = path.resolve(
-      cwd,
-      outFolder || defaultConfigCompilerOptions.outFolder!
-    );
+    const middleRootFolder = path.resolve(cwd, rootFolder || defaultConfigCompilerOptions.rootFolder!);
+    const outputFolder = path.resolve(cwd, outFolder || defaultConfigCompilerOptions.outFolder!);
     const EXTENSIONS = !!force ? ".ts" : ".js";
     if (!fs.existsSync(middleRootFolder)) fs.mkdirSync(middleRootFolder);
     const watchedFiles = fileList.filter(findTsFiles);
@@ -72,31 +52,22 @@ export function middlewareCompileFn(
     if (useHMR) {
       const valid = watchedFiles.every(p => p.startsWith(middleRootFolder));
       if (!valid) {
-        throw new Error(
-          "Middleware-Compiler Error: paths of HMR changed files must startsWith rootFolder."
-        );
+        throw new Error("Middleware-Compiler Error: paths of HMR changed files must startsWith rootFolder.");
       }
     }
     const files = !useHMR
       ? initCompilePreSteps(middleRootFolder, force, outputFolder, EXTENSIONS)
       : watchedFiles.map(each => path.relative(rootFolder!, each));
     const compileds: string[] = [];
-    const options = loadProgramConfig(tsconfig!, {
+    const opt = loadProgramConfig(tsconfig!, {
       noEmit: true,
       skipLibCheck: true
     });
-    let program: ts.Program;
-    program = createTSCompiler(
-      options,
-      files.map(i => `${middleRootFolder}/${i}`),
-      program
-    );
+    let program!: ts.Program;
+    program = createTSCompiler(opt, files.map(i => `${middleRootFolder}/${i}`), program);
     files.forEach(filePath => {
       const sourcePath = `${middleRootFolder}/${filePath}`;
-      const compiledPath = `${outputFolder}/${filePath.replace(
-        /\.ts$/,
-        EXTENSIONS
-      )}`;
+      const compiledPath = `${outputFolder}/${filePath.replace(/\.ts$/, EXTENSIONS)}`;
       const file = program.getSourceFile(sourcePath);
       const context = createContext(middleRootFolder, outputFolder);
       compileForEach(file!, context);
@@ -107,16 +78,12 @@ export function middlewareCompileFn(
       let finalExports: (...args: any[]) => any;
       const otherFuncs: Array<(...args: any[]) => any> = [];
       if (typeof exports !== "object" && typeof exports !== "function") {
-        throw new Error(
-          "Middleware-Compiler Error: a middleware function must be exported."
-        );
+        throw new Error("Middleware-Compiler Error: a middleware function must be exported.");
       }
       if (typeof exports === "object") {
         const { default: excuClass, ...others } = exports;
         if (typeof excuClass !== "function") {
-          throw new Error(
-            "Middleware-Compiler Error: a middleware function must be exported."
-          );
+          throw new Error("Middleware-Compiler Error: a middleware function must be exported.");
         } else {
           finalExports = excuClass;
           Object.keys(others || {}).forEach(name => {
@@ -129,15 +96,9 @@ export function middlewareCompileFn(
         finalExports = exports;
       }
       if (!finalExports.name) {
-        throw new Error(
-          "Middleware-Compiler Error: exported function must have a name."
-        );
+        throw new Error("Middleware-Compiler Error: exported function must have a name.");
       }
-      const exportStr = (!!force ? createTsFile : createJsFile)(
-        otherFuncs,
-        finalExports,
-        context
-      );
+      const exportStr = (!!force ? createTsFile : createJsFile)(otherFuncs, finalExports, context);
       if (!!force || !fs.existsSync(compiledPath) || useHMR) {
         fs.appendFileSync(compiledPath, exportStr, { flag: "w" });
         return compileds.push(compiledPath);
@@ -157,10 +118,7 @@ export function middlewareCompileFn(
   }
 }
 
-function createContext(
-  middleRootFolder: string,
-  outputFolder: string
-): ICompileContext {
+function createContext(middleRootFolder: string, outputFolder: string): ICompileContext {
   return {
     main: { root: middleRootFolder, out: outputFolder },
     imports: {},
@@ -169,11 +127,7 @@ function createContext(
   };
 }
 
-function createTSCompiler(
-  options: ts.ParsedCommandLine,
-  sourcePaths: string[],
-  program: ts.Program
-): ts.Program {
+function createTSCompiler(options: ts.ParsedCommandLine, sourcePaths: string[], program: ts.Program): ts.Program {
   return createProgram(
     {
       ...options,
@@ -183,12 +137,7 @@ function createTSCompiler(
   );
 }
 
-function initCompilePreSteps(
-  middleRootFolder: string,
-  force: boolean,
-  outputFolder: string,
-  EXTENSIONS: string
-) {
+function initCompilePreSteps(middleRootFolder: string, force: boolean, outputFolder: string, EXTENSIONS: string) {
   const files = fs.readdirSync(middleRootFolder);
   if (!!force && fs.existsSync(outputFolder)) {
     if (middleRootFolder === outputFolder) {
@@ -222,17 +171,12 @@ function createJsFile(
   const targetFunc = context.functions[finalExports.name];
   const { params, valid } = resolveParamsData(targetFunc);
   if (!valid) {
-    throw new Error(
-      "Middleware-Compiler Error: invalid middleware function params type."
-    );
+    throw new Error("Middleware-Compiler Error: invalid middleware function params type.");
   }
   const procedures: ImportsIndex[] = [];
   procedures.push([0, "// [astroboy.ts] 自动生成的代码"]);
   if (params.length > 0) {
-    procedures.push([
-      ImportStyle.Named,
-      `const { injectScope } = require("astroboy.ts");`
-    ]);
+    procedures.push([ImportStyle.Named, `const { injectScope } = require("astroboy.ts");`]);
   }
   procedures.push(...imports);
   procedures.push(...otherFuncs.map<ImportsIndex>(i => [8, i.toString()]));
@@ -258,17 +202,12 @@ function createTsFile(
   const targetFunc = context.functions[finalExports.name];
   const { params, valid } = resolveParamsData(targetFunc);
   if (!valid) {
-    throw new Error(
-      "Middleware-Compiler Error: invalid middleware function params type."
-    );
+    throw new Error("Middleware-Compiler Error: invalid middleware function params type.");
   }
   const procedures: ImportsIndex[] = [];
   procedures.push([0, "// [astroboy.ts] 自动生成的代码"]);
   if (params.length > 0) {
-    procedures.push([
-      ImportStyle.Named,
-      `import { injectScope, IMiddlewaresScope } from "astroboy.ts";`
-    ]);
+    procedures.push([ImportStyle.Named, `import { injectScope, IMiddlewaresScope } from "astroboy.ts";`]);
   }
   procedures.push(...imports);
   procedures.push(...otherFuncs.map<ImportsIndex>(i => [8, i.toString()]));
@@ -297,44 +236,28 @@ function resolveParamsData(targetFunc: { name: string; params: IFuncParam[] }) {
      * * valid：存在DI参数，且所有参数都可以被DI
      * * valid：不存在DI参数
      */
-    valid:
-      (params.length > 0 && params.length === sourceParams.length) ||
-      params.length === 0
+    valid: (params.length > 0 && params.length === sourceParams.length) || params.length === 0
   };
 }
 
-function createCommonMiddleware(
-  procedures: string[],
-  funcName: string,
-  isTs = false
-) {
+function createCommonMiddleware(procedures: string[], funcName: string, isTs = false) {
   if (isTs) {
     return (
-      `${procedures.join(
-        "\n"
-      )}\nexport = (options: any = {}, app: any) => async (ctx: any, next: any) => {\n    ` +
+      `${procedures.join("\n")}\nexport = (options: any = {}, app: any) => async (ctx: any, next: any) => {\n    ` +
       `return await ${funcName}(<any>{ ctx, options, app, next });\n};`
     );
   }
   return (
-    `${procedures.join(
-      "\n"
-    )}\nmodule.exports = (options = {}, app) => async (ctx, next) => {\n    ` +
+    `${procedures.join("\n")}\nmodule.exports = (options = {}, app) => async (ctx, next) => {\n    ` +
     `return await ${funcName}({ ctx, options, app, next });\n};`
   );
 }
 
-function createDIMiddleware(
-  procedures: string[],
-  actions: string[],
-  isTs = false
-) {
+function createDIMiddleware(procedures: string[], actions: string[], isTs = false) {
   if (isTs) {
     return (
       `${procedures.join("\n")}\nexport = (options: any = {}, app: any) => ` +
-      `injectScope(async ({ injector, next }: IMiddlewaresScope) => {\n${actions.join(
-        "\n"
-      )}\n});`
+      `injectScope(async ({ injector, next }: IMiddlewaresScope) => {\n${actions.join("\n")}\n});`
     );
   }
   return (
@@ -358,30 +281,19 @@ function createInjectActions(params: IFuncParam[], context: ICompileContext) {
     .join("\n");
 }
 
-function resolveIdentity(
-  typeName: string,
-  context: ICompileContext,
-  replace?: string
-) {
+function resolveIdentity(typeName: string, context: ICompileContext, replace?: string) {
   const target = Object.keys(context.imports)
     .map(i => context.imports[i])
     .find(i => i.name.includes(typeName));
   if (target) {
-    return `${target.identity}${
-      target.type === ImportStyle.Namespace ? ".default." : "."
-    }${replace || typeName}`;
+    return `${target.identity}${target.type === ImportStyle.Namespace ? ".default." : "."}${replace || typeName}`;
   }
   return "";
   // throw new Error("Middleware-Compiler Error: resolve inject token failed.");
 }
 
-function createAwaitMiddlewareAction(
-  middlewareName: string,
-  params: IFuncParam[]
-) {
-  return `  await ${middlewareName}.call({ next, options, app }, ${params
-    .map(p => `_p${p.paramIndex}`)
-    .join(", ")});`;
+function createAwaitMiddlewareAction(middlewareName: string, params: IFuncParam[]) {
+  return `  await ${middlewareName}.call({ next, options, app }, ${params.map(p => `_p${p.paramIndex}`).join(", ")});`;
   // return `  await (${middlewareName}.bind({ next }))(${params
   //   .map(p => `_p${p.paramIndex}`)
   //   .join(", ")});`;
