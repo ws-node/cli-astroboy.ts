@@ -1,6 +1,6 @@
 {
   "name": "@exoskeleton/cli",
-  "version": "0.0.1-rc.1561455096875",
+  "version": "0.0.1",
   "main": "index.js",
   "repository": "https://github.com/exoskeleton-astroboy/cli.git",
   "author": "Big Mogician <bigmogician@outlook.com>",

@@ -42,7 +42,7 @@ export const RouterPlugin: ICommandPlugin = {
   action(_, command: IRouterCmdOptions) {
     if (_ !== "router") return;
     console.log(chalk.green("========= [Exoskeleton CLI] <==> ROUTER ========\n"));
-    const fileName = command.config || "atc.config.js";
+    const fileName = command.config || "exoskeleton.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
     const projectRoot = process.cwd();
     let config: IRouterConfig;
