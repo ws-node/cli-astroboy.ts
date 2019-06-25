@@ -20,15 +20,15 @@ export const MiddlewarePlugin: ICommandPlugin = {
     console.log("");
     console.log("  Examples:");
     console.log("");
-    console.log("    $ atc middleware");
-    console.log("    $ atc middleware --force");
+    console.log("    $ exoskeleton middleware");
+    console.log("    $ exoskeleton middleware --force");
     console.log();
   },
   action(_, command: IMiddlewareCmdOptions) {
     if (_ !== "middleware") return;
     console.log(chalk.green("========= [Exoskeleton CLI] <==> MIDDLEWARES ========\n"));
     const projectRoot = process.cwd();
-    const fileName = command.config || "atc.config.js";
+    const fileName = command.config || "exoskeleton.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
 
     let config: IMiddlewareCompilerCmdConfig;

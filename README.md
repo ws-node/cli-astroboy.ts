@@ -30,9 +30,9 @@ yarn global add @exoskeleton/cli
 
 #### 0.cli 配置文件
 
-@exoskeleton/core 开放了一个配置文件，用来简化 cli 参数的使用，类似 webpack，可以使用--config 参数修改配置文件的名字。
+@exoskeleton/cli 开放了一个配置文件，用来简化 cli 参数的使用，类似 webpack，可以使用--config 参数修改配置文件的名字，默认为`exoskeleton.config.js`。
 
-> atc.config.js - 一个简单的配置文件
+> exoskeleton.config.js - 一个简单的配置文件
 
 ```javascript
 const path = require("path");
@@ -44,7 +44,7 @@ module.exports = {
   transpile: true,
   debug: "*",
   mock: "http://127.0.0.1:8001",
-  // atc router 的命令配置
+  // exoskeleton router 的命令配置
   // 编译生成routers，不再需要手动书写routers文件
   routers: {
     enabled: true,
@@ -53,7 +53,7 @@ module.exports = {
     filetype: "ts",
     details: true
   },
-  // atc-cli监控的文件修改列表，自动重启node服务
+  // exoskeleton-cli监控的文件修改列表，自动重启node服务
   watch: [
     path.join(__dirname, "app/**/*.*"),
     path.join(__dirname, "config/**/*.*"),
@@ -61,7 +61,7 @@ module.exports = {
   ],
   // 忽略的文件列表
   ignore: [],
-  // atc config 的命令配置
+  // exoskeleton config 的命令配置
   // 编译ts配置文件，支持DI能力 @1.1.0 引入
   configCompiler: {
     enabled: true,
@@ -76,8 +76,8 @@ module.exports = {
 
 ```zsh
 # cmd：exo 或者 exoskeleton
-# 本地安装@exoskeleton/core
+# 本地安装@exoskeleton/cli
 npx exo dev --inspect --tsconfig app/tsconfig.json
-# 全局装过@exoskeleton/core
+# 全局装过@exoskeleton/cli
 exo dev --inspect --tsconfig app/tsconfig.json
 ```

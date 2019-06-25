@@ -1,11 +1,11 @@
-import path from "path";
 import chalk from "chalk";
 import get from "lodash/get";
-import { loadConfig } from "../utils/load-config";
-import { startChildProcess } from "../utils/execChild";
-import { TRANSFROM } from "../utils/transform";
-import { CancellationToken } from "../utils/cancellation-token";
+import path from "path";
 import { ICommandPlugin, IConfigCompilerCmdConfig, IIntergradeOptions } from "../base";
+import { CancellationToken } from "../utils/cancellation-token";
+import { startChildProcess } from "../utils/execChild";
+import { loadConfig } from "../utils/load-config";
+import { TRANSFROM } from "../utils/transform";
 
 export interface IConfigCmdOptions {
   force?: boolean;
@@ -20,15 +20,15 @@ export const ConfigPlugin: ICommandPlugin = {
     console.log("");
     console.log("  Examples:");
     console.log("");
-    console.log("    $ atc config");
-    console.log("    $ atc config --force");
+    console.log("    $ exoskeleton config");
+    console.log("    $ exoskeleton config --force");
     console.log();
   },
   action(_, command: IConfigCmdOptions) {
     if (_ !== "config") return;
     console.log(chalk.green("========= [Exoskeleton CLI] <==> CONFIGS ========\n"));
     const projectRoot = process.cwd();
-    const fileName = command.config || "atc.config.js";
+    const fileName = command.config || "exoskeleton.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}\n`);
 
     let config: IConfigCompilerCmdConfig;

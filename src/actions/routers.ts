@@ -1,11 +1,11 @@
-import path from "path";
-import get from "lodash/get";
 import chalk from "chalk";
-import { loadConfig } from "../utils/load-config";
-import { ICommandPlugin, IRouterConfig, IIntergradeOptions } from "../base";
-import { startChildProcess } from "../utils/execChild";
-import { TRANSFROM } from "../utils/transform";
+import get from "lodash/get";
+import path from "path";
+import { ICommandPlugin, IIntergradeOptions, IRouterConfig } from "../base";
 import { CancellationToken } from "../utils/cancellation-token";
+import { startChildProcess } from "../utils/execChild";
+import { loadConfig } from "../utils/load-config";
+import { TRANSFROM } from "../utils/transform";
 
 export interface IRouterCmdOptions {
   config?: string;
@@ -21,7 +21,7 @@ export const RouterPlugin: ICommandPlugin = {
   name: "router",
   description: "@exoskeleton/cli routers cmd",
   options: [
-    ["-C, --config [atcConfig]", "use atc.config.js"],
+    ["-C, --config [exoskeletonConfig]", "use exoskeleton.config.js"],
     ["-E, --enabled [isEnabled]", "open routers-auto-build"],
     ["-A, --always [isAlways]", "set routers-always-rebuild"],
     ["-F, --filetype [fileType]", "set routers fileType"],
@@ -33,10 +33,10 @@ export const RouterPlugin: ICommandPlugin = {
     console.log("");
     console.log("  Examples:");
     console.log("");
-    console.log("    $ atc router");
-    console.log("    $ atc router --always");
-    console.log("    $ atc router --fileType ts");
-    console.log("    $ atc router --approot /v1/prj");
+    console.log("    $ exoskeleton router");
+    console.log("    $ exoskeleton router --always");
+    console.log("    $ exoskeleton router --fileType ts");
+    console.log("    $ exoskeleton router --approot /v1/prj");
     console.log();
   },
   action(_, command: IRouterCmdOptions) {

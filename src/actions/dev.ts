@@ -59,7 +59,7 @@ export const DevPlugin: ICommandPlugin = {
   name: "dev",
   description: "本地开发，开启后端服务",
   options: [
-    ["-C, --config [atcConfig]", "使用自定义的atc.config.js配置文件"],
+    ["-C, --config [exoskeletonConfig]", "使用自定义的exoskeleton.config.js配置文件"],
     ["-D, --debug [debugName]", "开启 debug 模式"],
     ["-E, --env [NODE_ENV]", "设置 NODE_ENV 环境变量，默认 development"],
     ["-P, --port [NODE_PORT]", "设置 NODE_PORT 环境变量，默认 8201"],
@@ -72,17 +72,17 @@ export const DevPlugin: ICommandPlugin = {
     console.log("");
     console.log("  Examples:");
     console.log("");
-    console.log("    $ atc dev");
-    console.log("    $ atc dev --debug");
-    console.log("    $ atc dev --debug koa:application");
-    console.log("    $ atc dev --debug --mock");
-    console.log("    $ atc dev --mock http://127.0.0.1:8001");
-    console.log("    $ atc dev --mock");
-    console.log("    $ atc dev --env pre");
-    console.log("    $ atc dev --port 8201");
-    console.log("    $ atc dev --env development --port 8201");
-    console.log("    $ atc dev --tsconfig app/tsconfig.json");
-    console.log("    $ atc dev --inspect");
+    console.log("    $ exoskeleton dev");
+    console.log("    $ exoskeleton dev --debug");
+    console.log("    $ exoskeleton dev --debug koa:application");
+    console.log("    $ exoskeleton dev --debug --mock");
+    console.log("    $ exoskeleton dev --mock http://127.0.0.1:8001");
+    console.log("    $ exoskeleton dev --mock");
+    console.log("    $ exoskeleton dev --env pre");
+    console.log("    $ exoskeleton dev --port 8201");
+    console.log("    $ exoskeleton dev --env development --port 8201");
+    console.log("    $ exoskeleton dev --tsconfig app/tsconfig.json");
+    console.log("    $ exoskeleton dev --inspect");
     console.log();
   },
   async action(_, command: IDevCmdOptions) {
@@ -99,7 +99,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     console.log(chalk.red(`NO FILE [${projectRoot}/app/app.ts] EXIST`));
     return;
   }
-  const fileName = command.config || "atc.config.js";
+  const fileName = command.config || "exoskeleton.config.js";
   console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
   const config = loadConfig(projectRoot, fileName);
 
