@@ -1,19 +1,18 @@
-import path from "path";
 import chalk from "chalk";
 import get from "lodash/get";
-import { loadConfig } from "../utils/load-config";
-import { MiddlewareCompilerCmdConfig, IntergradeOptions } from "../base";
-import { CommandPlugin } from "../base";
-import { startChildProcess } from "../utils/execChild";
-import { TRANSFROM } from "../utils/transform";
+import path from "path";
+import { ICommandPlugin, IIntergradeOptions, IMiddlewareCompilerCmdConfig } from "../base";
 import { CancellationToken } from "../utils/cancellation-token";
+import { startChildProcess } from "../utils/execChild";
+import { loadConfig } from "../utils/load-config";
+import { TRANSFROM } from "../utils/transform";
 
 export interface IMiddlewareCmdOptions {
   force?: boolean;
   config?: string;
 }
 
-export const MiddlewarePlugin: CommandPlugin = {
+export const MiddlewarePlugin: ICommandPlugin = {
   name: "middleware",
   description: "编译middlewares文件",
   options: [["-F, --force", "清除所有middlewares，并重新编译"]],
@@ -32,7 +31,7 @@ export const MiddlewarePlugin: CommandPlugin = {
     const fileName = command.config || "atc.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
 
-    let config: MiddlewareCompilerCmdConfig;
+    let config: IMiddlewareCompilerCmdConfig;
     const defaultConfigs = TRANSFROM.middlewares({});
     try {
       const req = loadConfig(projectRoot, fileName);
@@ -54,8 +53,8 @@ export const MiddlewarePlugin: CommandPlugin = {
 
 export function runMiddlewareCompile(
   projectRoot: string,
-  config: MiddlewareCompilerCmdConfig,
-  intergradeOptions: IntergradeOptions<CancellationToken> = {},
+  config: IMiddlewareCompilerCmdConfig,
+  intergradeOptions: IIntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
   const { changes = [], type = "spawn", token, defineCancel } = intergradeOptions;

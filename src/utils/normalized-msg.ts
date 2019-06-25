@@ -1,7 +1,7 @@
 export type ErrorType = "diagnostic" | "lint";
 export type Severity = "error" | "warning";
 
-interface NormalizedMessageJson {
+interface INormalizedMessageJson {
   type: ErrorType;
   code: string | number;
   severity: Severity;
@@ -19,32 +19,11 @@ export class NormalizedMessage {
   public static readonly SEVERITY_ERROR: Severity = "error";
   public static readonly SEVERITY_WARNING: Severity = "warning";
 
-  public readonly type: ErrorType;
-  public readonly code: string | number;
-  public readonly severity: Severity;
-  public readonly content: string;
-  public readonly file?: string;
-  public readonly line?: number;
-  public readonly character?: number;
-
-  constructor(data: NormalizedMessageJson) {
-    this.type = data.type;
-    this.code = data.code;
-    this.severity = data.severity;
-    this.content = data.content;
-    this.file = data.file;
-    this.line = data.line;
-    this.character = data.character;
-  }
-
-  public static createFromJSON(json: NormalizedMessageJson) {
+  public static createFromJSON(json: INormalizedMessageJson) {
     return new NormalizedMessage(json);
   }
 
-  public static compare(
-    messageA: NormalizedMessage,
-    messageB: NormalizedMessage
-  ) {
+  public static compare(messageA: NormalizedMessage, messageB: NormalizedMessage) {
     if (!(messageA instanceof NormalizedMessage)) {
       return -1;
     }
@@ -55,49 +34,29 @@ export class NormalizedMessage {
     return (
       NormalizedMessage.compareTypes(messageA.type, messageB.type) ||
       NormalizedMessage.compareOptionalStrings(messageA.file, messageB.file) ||
-      NormalizedMessage.compareSeverities(
-        messageA.severity,
-        messageB.severity
-      ) ||
+      NormalizedMessage.compareSeverities(messageA.severity, messageB.severity) ||
       NormalizedMessage.compareNumbers(messageA.line, messageB.line) ||
-      NormalizedMessage.compareNumbers(
-        messageA.character,
-        messageB.character
-      ) ||
+      NormalizedMessage.compareNumbers(messageA.character, messageB.character) ||
       // code can be string (lint failure) or number (typescript error) - should the following line cater for this in some way?
-      NormalizedMessage.compareOptionalStrings(
-        messageA.code as string,
-        messageB.code as string
-      ) ||
-      NormalizedMessage.compareOptionalStrings(
-        messageA.content,
-        messageB.content
-      ) ||
+      NormalizedMessage.compareOptionalStrings(messageA.code as string, messageB.code as string) ||
+      NormalizedMessage.compareOptionalStrings(messageA.content, messageB.content) ||
       0 /* EqualTo */
     );
   }
 
-  public static equals(
-    messageA: NormalizedMessage,
-    messageB: NormalizedMessage
-  ) {
+  public static equals(messageA: NormalizedMessage, messageB: NormalizedMessage) {
     return this.compare(messageA, messageB) === 0;
   }
 
   public static deduplicate(messages: NormalizedMessage[]) {
     return messages.sort(NormalizedMessage.compare).filter((message, index) => {
-      return (
-        index === 0 || !NormalizedMessage.equals(message, messages[index - 1])
-      );
+      return index === 0 || !NormalizedMessage.equals(message, messages[index - 1]);
     });
   }
 
   public static compareTypes(typeA: ErrorType, typeB: ErrorType) {
     const priorities = [typeA, typeB].map(type => {
-      return [
-        NormalizedMessage.TYPE_LINT /* 0 */,
-        NormalizedMessage.TYPE_DIAGNOSTIC /* 1 */
-      ].indexOf(type);
+      return [NormalizedMessage.TYPE_LINT /* 0 */, NormalizedMessage.TYPE_DIAGNOSTIC /* 1 */].indexOf(type);
     });
 
     return priorities[0] - priorities[1];
@@ -105,10 +64,7 @@ export class NormalizedMessage {
 
   public static compareSeverities(severityA: Severity, severityB: Severity) {
     const priorities = [severityA, severityB].map(type => {
-      return [
-        NormalizedMessage.SEVERITY_WARNING /* 0 */,
-        NormalizedMessage.SEVERITY_ERROR /* 1 */
-      ].indexOf(type);
+      return [NormalizedMessage.SEVERITY_WARNING /* 0 */, NormalizedMessage.SEVERITY_ERROR /* 1 */].indexOf(type);
     });
 
     return priorities[0] - priorities[1];
@@ -141,6 +97,24 @@ export class NormalizedMessage {
     return numberA - numberB;
   }
 
+  public readonly type: ErrorType;
+  public readonly code: string | number;
+  public readonly severity: Severity;
+  public readonly content: string;
+  public readonly file?: string;
+  public readonly line?: number;
+  public readonly character?: number;
+
+  constructor(data: INormalizedMessageJson) {
+    this.type = data.type;
+    this.code = data.code;
+    this.severity = data.severity;
+    this.content = data.content;
+    this.file = data.file;
+    this.line = data.line;
+    this.character = data.character;
+  }
+
   public toJSON() {
     return {
       type: this.type,
@@ -150,7 +124,7 @@ export class NormalizedMessage {
       file: this.file,
       line: this.line,
       character: this.character
-    } as NormalizedMessageJson;
+    } as INormalizedMessageJson;
   }
 
   public isDiagnosticType() {

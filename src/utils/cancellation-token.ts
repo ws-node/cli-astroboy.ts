@@ -17,34 +17,23 @@ function existsSync(filePath: fs.PathLike) {
   return true;
 }
 
-interface CancellationTokenData {
+interface ICancellationTokenData {
   isCancelled: boolean;
   cancellationFileName: string;
 }
 
 export class CancellationToken {
+  public static createFromJSON(typescript: typeof ts, json: ICancellationTokenData) {
+    return new CancellationToken(typescript, json.cancellationFileName, json.isCancelled);
+  }
+
   private isCancelled: boolean;
   private cancellationFileName: string;
   private lastCancellationCheckTime: number;
-  constructor(
-    private typescript: typeof ts,
-    cancellationFileName?: string,
-    isCancelled?: boolean
-  ) {
+  constructor(private typescript: typeof ts, cancellationFileName?: string, isCancelled?: boolean) {
     this.isCancelled = !!isCancelled;
     this.cancellationFileName = cancellationFileName || uuid();
     this.lastCancellationCheckTime = 0;
-  }
-
-  public static createFromJSON(
-    typescript: typeof ts,
-    json: CancellationTokenData
-  ) {
-    return new CancellationToken(
-      typescript,
-      json.cancellationFileName,
-      json.isCancelled
-    );
   }
 
   public toJSON() {

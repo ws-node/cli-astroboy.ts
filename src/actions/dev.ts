@@ -8,7 +8,7 @@ import get from "lodash/get";
 import throttle from "lodash/throttle";
 import path from "path";
 import ts from "typescript";
-import { CommandPlugin, IntergradeOptions } from "../base";
+import { ICommandPlugin, IIntergradeOptions } from "../base";
 import { CancellationToken } from "../utils/cancellation-token";
 import { loadConfig } from "../utils/load-config";
 import { NormalizedMessage } from "../utils/normalized-msg";
@@ -55,7 +55,7 @@ interface IForkCmdOptions {
   changes: string[];
 }
 
-export const DevPlugin: CommandPlugin = {
+export const DevPlugin: ICommandPlugin = {
   name: "dev",
   description: "本地开发，开启后端服务",
   options: [
@@ -222,7 +222,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     config.env.HTTPS_PROXY = url;
   }
 
-  async function runConfigs(options: IntergradeOptions<CancellationToken> = {}) {
+  async function runConfigs(options: IIntergradeOptions<CancellationToken> = {}) {
     try {
       if (useConfigCompile) {
         const conf = config.configCompiler || {};
@@ -239,7 +239,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     }
   }
 
-  async function runMiddlewares(options: IntergradeOptions<CancellationToken> = {}) {
+  async function runMiddlewares(options: IIntergradeOptions<CancellationToken> = {}) {
     try {
       if (useMiddlewareCompile) {
         const conf = config.middlewareCompiler || {};
@@ -256,7 +256,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     }
   }
 
-  async function runRouters(options: IntergradeOptions<CancellationToken> = {}) {
+  async function runRouters(options: IIntergradeOptions<CancellationToken> = {}) {
     try {
       if (useRouterBuilds) {
         const conf = config.routers || {};
@@ -451,10 +451,10 @@ async function startMainProcess(config: IForkCmdOptions) {
 }
 
 function doActionAwait<T>(
-  method: (p: string, c: T, pl?: IntergradeOptions<CancellationToken>, f?: (s: boolean, e?: Error) => void) => void,
+  method: (p: string, c: T, pl?: IIntergradeOptions<CancellationToken>, f?: (s: boolean, e?: Error) => void) => void,
   projectRoot: string,
   config: T,
-  payload: IntergradeOptions<CancellationToken>
+  payload: IIntergradeOptions<CancellationToken>
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     method(projectRoot, config, payload || {}, (success, error) => {

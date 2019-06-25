@@ -1,4 +1,4 @@
-import { CmdConfig, createCmdConfig, IENV as E, mergeCmdConfig, RouterConfig as RConfig } from "./base";
+import { createCmdConfig, ICmdConfig, IENV as E, IRouterConfig as RConfig, mergeCmdConfig } from "./base";
 import { compileFn, IConfigCompilerOptions } from "./builders/config-compiler";
 import { IMiddlewareCompilerOptions, middlewareCompileFn } from "./builders/middleware-cmp";
 import { initRouters } from "./builders/routers";
@@ -55,7 +55,7 @@ export function preMiddlewareCompiler(configs: Partial<IMiddlewareCompilerOption
 
 export interface IEnv extends E {}
 export interface IRouterConfig extends RConfig {}
-export interface IConfig extends CmdConfig {
+export interface IConfig extends ICmdConfig {
   env?: IEnv;
   routers?: IRouterConfig;
 }

@@ -5,14 +5,14 @@ import { loadConfig } from "../utils/load-config";
 import { startChildProcess } from "../utils/execChild";
 import { TRANSFROM } from "../utils/transform";
 import { CancellationToken } from "../utils/cancellation-token";
-import { CommandPlugin, ConfigCompilerCmdConfig, IntergradeOptions } from "../base";
+import { ICommandPlugin, IConfigCompilerCmdConfig, IIntergradeOptions } from "../base";
 
 export interface IConfigCmdOptions {
   force?: boolean;
   config?: string;
 }
 
-export const ConfigPlugin: CommandPlugin = {
+export const ConfigPlugin: ICommandPlugin = {
   name: "config",
   description: "编译configs文件",
   options: [["-F, --force", "清除所有configs，并重新编译"]],
@@ -31,7 +31,7 @@ export const ConfigPlugin: CommandPlugin = {
     const fileName = command.config || "atc.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}\n`);
 
-    let config: ConfigCompilerCmdConfig;
+    let config: IConfigCompilerCmdConfig;
     const defaultConfigs = TRANSFROM.configs({});
     try {
       const req = loadConfig(projectRoot, fileName);
@@ -53,8 +53,8 @@ export const ConfigPlugin: CommandPlugin = {
 
 export function runConfigCompile(
   projectRoot: string,
-  config: ConfigCompilerCmdConfig,
-  intergradeOptions: IntergradeOptions<CancellationToken> = {},
+  config: IConfigCompilerCmdConfig,
+  intergradeOptions: IIntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
   const { changes = [], type = "spawn", token, defineCancel } = intergradeOptions;

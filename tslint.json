@@ -2,12 +2,9 @@
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
     "object-literal-sort-keys": false,
-    "no-console": {
-      "severity": "warning",
-      "options": ["log"]
-    },
+    "no-console": false,
     "no-implicit-dependencies": [true, "dev", []],
-    "no-submodule-imports": [true, "lodash", "@bigmogician/publisher"],
+    "no-submodule-imports": [true, "lodash", "uuid", "@bigmogician/publisher"],
     "no-unused-expression": false,
     "callable-types": false,
     "unified-signatures": false,

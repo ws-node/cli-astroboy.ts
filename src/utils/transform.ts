@@ -1,15 +1,9 @@
 import { defaultConfigCompilerOptions as defaultM } from "../builders/middleware-cmp";
 import { defaultConfigCompilerOptions as defaultC } from "../builders/config-compiler";
 import { defaultRouterOptions as defaultR } from "../builders/routers";
-import {
-  MiddlewareCompilerCmdConfig,
-  ConfigCompilerCmdConfig,
-  RouterConfig
-} from "../base";
+import { IMiddlewareCompilerCmdConfig, IConfigCompilerCmdConfig, IRouterConfig } from "../base";
 
-function resolveMiddlewaresConfig(
-  configs: MiddlewareCompilerCmdConfig
-): MiddlewareCompilerCmdConfig {
+function resolveMiddlewaresConfig(configs: IMiddlewareCompilerCmdConfig): IMiddlewareCompilerCmdConfig {
   const { rootFolder: root, outFolder: output, ...others } = defaultM;
   return {
     root,
@@ -19,9 +13,7 @@ function resolveMiddlewaresConfig(
   };
 }
 
-function resolveConfigsConfig(
-  configs: ConfigCompilerCmdConfig
-): ConfigCompilerCmdConfig {
+function resolveConfigsConfig(configs: IConfigCompilerCmdConfig): IConfigCompilerCmdConfig {
   const { outRoot: outputroot, configRoot: configroot, ...others } = defaultC;
   return {
     outputroot,
@@ -31,7 +23,7 @@ function resolveConfigsConfig(
   };
 }
 
-function resolveRoutersConfig(configs: RouterConfig): RouterConfig {
+function resolveRoutersConfig(configs: IRouterConfig): IRouterConfig {
   const { appRoot: approot, fileType: filetype, ...others } = defaultR;
   return {
     approot,

@@ -1,14 +1,14 @@
-import get from "lodash/get";
 import { ChildProcess } from "child_process";
+import get from "lodash/get";
 
-export interface IntergradeOptions<C> {
+export interface IIntergradeOptions<C> {
   changes?: string[];
   type?: "spawn" | "fork" | "exec";
   token?: C;
   defineCancel?: (child: ChildProcess, token: C) => void;
 }
 
-export interface CommandPlugin {
+export interface ICommandPlugin {
   name: string;
   description: string;
   options: Array<[string, string]>;
@@ -22,7 +22,7 @@ export interface IENV {
   [key: string]: any;
 }
 
-export interface RouterConfig {
+export interface IRouterConfig {
   enabled?: boolean;
   always?: boolean;
   approot?: string;
@@ -31,7 +31,7 @@ export interface RouterConfig {
   tsconfig?: string;
 }
 
-export interface ConfigCompilerCmdConfig {
+export interface IConfigCompilerCmdConfig {
   enabled?: boolean;
   force?: boolean;
   configroot?: string;
@@ -39,7 +39,7 @@ export interface ConfigCompilerCmdConfig {
   tsconfig?: string;
 }
 
-export interface MiddlewareCompilerCmdConfig {
+export interface IMiddlewareCompilerCmdConfig {
   enabled?: boolean;
   force?: boolean;
   root?: string;
@@ -47,7 +47,7 @@ export interface MiddlewareCompilerCmdConfig {
   tsconfig?: string;
 }
 
-export interface CmdConfig {
+export interface ICmdConfig {
   tsconfig?: string;
   inspect?: boolean;
   env?: IENV;
@@ -58,22 +58,22 @@ export interface CmdConfig {
   mock?: boolean | string;
   typeCheck?: boolean;
   transpile?: boolean;
-  routers?: RouterConfig;
+  routers?: IRouterConfig;
   compile?: boolean;
-  configCompiler?: ConfigCompilerCmdConfig & { hmr?: boolean };
-  middlewareCompiler?: MiddlewareCompilerCmdConfig & { hmr?: boolean };
+  configCompiler?: IConfigCompilerCmdConfig & { hmr?: boolean };
+  middlewareCompiler?: IMiddlewareCompilerCmdConfig & { hmr?: boolean };
 }
 
-export interface InnerCmdConfig extends CmdConfig {
+export interface IInnerCmdConfig extends ICmdConfig {
   env?: IENV & { __TSCONFIG?: any; __TRANSPILE?: any };
   exec?: string;
 }
 
-export function createCmdConfig(config: CmdConfig): CmdConfig {
+export function createCmdConfig(config: ICmdConfig): ICmdConfig {
   return config;
 }
 
-export function mergeCmdConfig(config: CmdConfig, merge: CmdConfig): CmdConfig {
+export function mergeCmdConfig(config: ICmdConfig, merge: ICmdConfig): ICmdConfig {
   const watch = get(merge, "watch", undefined);
   const ignore = get(merge, "ignore", undefined);
   const oldEnvs = get(merge, "env", {});
@@ -85,16 +85,8 @@ export function mergeCmdConfig(config: CmdConfig, merge: CmdConfig): CmdConfig {
       ...oldEnvs,
       ...newEnvs
     },
-    watch: !watch
-      ? config.watch
-      : config.watch !== false
-      ? [...(config.watch || []), ...watch]
-      : [],
-    ignore: !ignore
-      ? config.ignore
-      : config.ignore !== false
-      ? [...(config.ignore || []), ...ignore]
-      : [],
+    watch: !watch ? config.watch : config.watch !== false ? [...(config.watch || []), ...watch] : [],
+    ignore: !ignore ? config.ignore : config.ignore !== false ? [...(config.ignore || []), ...ignore] : [],
     verbose: get(merge, "verbose", config.verbose),
     debug: get(merge, "debug", config.debug),
     mock: get(merge, "mock", config.mock),

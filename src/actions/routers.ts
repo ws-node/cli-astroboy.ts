@@ -2,7 +2,7 @@ import path from "path";
 import get from "lodash/get";
 import chalk from "chalk";
 import { loadConfig } from "../utils/load-config";
-import { CommandPlugin, RouterConfig, IntergradeOptions } from "../base";
+import { ICommandPlugin, IRouterConfig, IIntergradeOptions } from "../base";
 import { startChildProcess } from "../utils/execChild";
 import { TRANSFROM } from "../utils/transform";
 import { CancellationToken } from "../utils/cancellation-token";
@@ -17,7 +17,7 @@ export interface IRouterCmdOptions {
   tsconfig?: string;
 }
 
-export const RouterPlugin: CommandPlugin = {
+export const RouterPlugin: ICommandPlugin = {
   name: "router",
   description: "@exoskeleton/cli routers cmd",
   options: [
@@ -45,7 +45,7 @@ export const RouterPlugin: CommandPlugin = {
     const fileName = command.config || "atc.config.js";
     console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
     const projectRoot = process.cwd();
-    let config: RouterConfig;
+    let config: IRouterConfig;
     const defaultConfigs = {
       ...TRANSFROM.routers({}),
       details: true,
@@ -77,8 +77,8 @@ export const RouterPlugin: CommandPlugin = {
 
 export function runRoutersBuilder(
   projectRoot: string,
-  config: RouterConfig,
-  intergradeOptions: IntergradeOptions<CancellationToken> = {},
+  config: IRouterConfig,
+  intergradeOptions: IIntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
   const { type = "spawn", token, defineCancel } = intergradeOptions;

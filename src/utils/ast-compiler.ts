@@ -1,5 +1,5 @@
-import ts from "typescript";
 import path from "path";
+import ts from "typescript";
 
 export enum ImportStyle {
   TSLib = 0,
@@ -59,18 +59,15 @@ export function compileForEach(node: ts.Node, context: ICompileContext): void {
     case ts.SyntaxKind.EndOfFileToken:
     case ts.SyntaxKind.SourceFile:
     default:
-      ts.forEachChild(node, node => compileForEach(node, context));
+      ts.forEachChild(node, (n: ts.Node) => compileForEach(n, context));
   }
 }
 
 function resolveExports(context: ICompileContext, node: ts.Node) {
   const exports = (context["exports"] = context["exports"] || {});
   const thisExportsNode = <ts.ExpressionWithTypeArguments>node;
-  const dLen = Object.keys(exports).filter(i =>
-    i.startsWith("[dynamic exports")
-  ).length;
-  const name =
-    (<any>thisExportsNode.expression)["text"] || `[dynamic exports ${dLen}]`;
+  const dLen = Object.keys(exports).filter(i => i.startsWith("[dynamic exports")).length;
+  const name = (<any>thisExportsNode.expression)["text"] || `[dynamic exports ${dLen}]`;
   exports[name] = { name };
 }
 
@@ -80,12 +77,8 @@ function resolveFunctions(context: ICompileContext, node: ts.Node) {
   const isExports = (<any[]>(thisFuncNode["modifiers"] || []))
     .map((i: ts.Modifier) => i.kind)
     .includes(ts.SyntaxKind.ExportKeyword);
-  const dLen = Object.keys(functions).filter(i =>
-    i.startsWith("[dynamic function")
-  ).length;
-  const name = !thisFuncNode.name
-    ? `[dynamic function ${dLen + 1}]`
-    : thisFuncNode.name.text;
+  const dLen = Object.keys(functions).filter(i => i.startsWith("[dynamic function")).length;
+  const name = !thisFuncNode.name ? `[dynamic function ${dLen + 1}]` : thisFuncNode.name.text;
   if (isExports) {
     const exports = (context["exports"] = context["exports"] || {});
     exports[name] = { name };
@@ -94,35 +87,33 @@ function resolveFunctions(context: ICompileContext, node: ts.Node) {
     name,
     params: []
   });
-  (<any>thisFuncNode.parameters || []).forEach(
-    (param: ts.ParameterDeclaration, index: number) => {
-      if (!param.type || !(<any>param.type)["typeName"]) {
-        return thisFunc.params.push({
-          name: (<ts.Identifier>param.name).text,
-          type: "[unknown type]",
-          namespace: "[unknown namespace]",
-          typeName: "[unknown typeName]",
-          paramIndex: index
-        });
-      }
-      if ((<any>param.type)["typeName"].kind === ts.SyntaxKind.QualifiedName) {
-        thisFunc.params.push({
-          name: (<ts.Identifier>param.name).text,
-          type: "namespaceType",
-          namespace: (<any>param.type)["typeName"].left.text,
-          typeName: (<any>param.type)["typeName"].right.text,
-          paramIndex: index
-        });
-      } else {
-        thisFunc.params.push({
-          name: (<ts.Identifier>param.name).text,
-          type: "directType",
-          typeName: (<any>param.type)["typeName"].text,
-          paramIndex: index
-        });
-      }
+  (<any>thisFuncNode.parameters || []).forEach((param: ts.ParameterDeclaration, index: number) => {
+    if (!param.type || !(<any>param.type)["typeName"]) {
+      return thisFunc.params.push({
+        name: (<ts.Identifier>param.name).text,
+        type: "[unknown type]",
+        namespace: "[unknown namespace]",
+        typeName: "[unknown typeName]",
+        paramIndex: index
+      });
     }
-  );
+    if ((<any>param.type)["typeName"].kind === ts.SyntaxKind.QualifiedName) {
+      thisFunc.params.push({
+        name: (<ts.Identifier>param.name).text,
+        type: "namespaceType",
+        namespace: (<any>param.type)["typeName"].left.text,
+        typeName: (<any>param.type)["typeName"].right.text,
+        paramIndex: index
+      });
+    } else {
+      thisFunc.params.push({
+        name: (<ts.Identifier>param.name).text,
+        type: "directType",
+        typeName: (<any>param.type)["typeName"].text,
+        paramIndex: index
+      });
+    }
+  });
 }
 
 function resolveImports(context: ICompileContext, node: ts.Node) {
@@ -137,10 +128,7 @@ function resolveImports(context: ICompileContext, node: ts.Node) {
   }
   if (node.kind === ts.SyntaxKind.ImportEqualsDeclaration) {
     const thisNode = <ts.ImportEqualsDeclaration>node;
-    const reference =
-      (<any>(<ts.ExternalModuleReference>thisNode.moduleReference).expression)[
-        "text"
-      ] || "";
+    const reference = (<any>(<ts.ExternalModuleReference>thisNode.moduleReference).expression)["text"] || "";
     const identity = getIdentity(reference, context);
     imports[identity] = {
       type: ImportStyle.Module,
@@ -192,10 +180,9 @@ function resolveImports(context: ICompileContext, node: ts.Node) {
 function getIdentity(reference: string, context: ICompileContext) {
   const idx = (reference || "").lastIndexOf("/");
   const lastTail = (reference || "").slice(idx + 1) || "";
-  const temp_id = normalize(lastTail);
-  const count = Object.keys(context.imports).filter(i => i.startsWith(temp_id))
-    .length;
-  return `${temp_id}_${count + 1}`;
+  const tempId = normalize(lastTail);
+  const count = Object.keys(context.imports).filter(i => i.startsWith(tempId)).length;
+  return `${tempId}_${count + 1}`;
 }
 
 function normalize(value: string) {
@@ -214,10 +201,7 @@ export const ImportsHelper = {
     return Object.keys(context.imports)
       .map<[ImportStyle, string]>(id => {
         const current = context.imports[id];
-        const [is, relativePath] = resolveRelativePath(
-          current.reference,
-          context
-        );
+        const [is, relativePath] = resolveRelativePath(current.reference, context);
         let result: string;
         switch (current.type) {
           case ImportStyle.TSLib:
@@ -230,14 +214,10 @@ export const ImportsHelper = {
             result = `const ${current.identity} = require("${relativePath}");`;
             break;
           case ImportStyle.Namespace:
-            result = `const ${
-              current.identity
-            } = tslib_1.__importDefault(require("${relativePath}"));`;
+            result = `const ${current.identity} = tslib_1.__importDefault(require("${relativePath}"));`;
             break;
           case ImportStyle.Star:
-            result = `const ${
-              current.identity
-            } = tslib_1.__importStar(require("${relativePath}"));`;
+            result = `const ${current.identity} = tslib_1.__importStar(require("${relativePath}"));`;
             break;
           default:
             result = "";
@@ -252,10 +232,7 @@ export const ImportsHelper = {
       .filter(n => n !== "tslib_1")
       .map<[ImportStyle, string]>(id => {
         const current = context.imports[id];
-        const [is, relativePath] = resolveRelativePath(
-          current.reference,
-          context
-        );
+        const [is, relativePath] = resolveRelativePath(current.reference, context);
         let result: string;
         switch (current.type) {
           case ImportStyle.TSLib:

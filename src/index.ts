@@ -4,12 +4,12 @@ import { ConfigPlugin } from "./actions/config";
 import { DevPlugin } from "./actions/dev";
 import { MiddlewarePlugin } from "./actions/middleware";
 import { RouterPlugin } from "./actions/routers";
-import { CommandPlugin } from "./base";
+import { ICommandPlugin } from "./base";
 
 // tslint:disable-next-line: no-var-requires
 const pkg = require("./package.json");
 
-function initCommand(plugin: CommandPlugin) {
+function initCommand(plugin: ICommandPlugin) {
   const program = commander.name(plugin.name).description(plugin.description);
   if (plugin.options) {
     for (const plu of plugin.options) {

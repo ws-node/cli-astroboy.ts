@@ -1,14 +1,13 @@
-import fs from "fs";
-import path from "path";
-import rimraf from "rimraf";
 import chalk from "chalk";
+import fs from "fs";
+import rimraf from "rimraf";
 
-export interface InnerRouterOptions extends RouterOptions {
+export interface IInnerRouterOptions extends IRouterOptions {
   ctorFolder: string;
   routerFolder: string;
 }
 
-export interface RouterOptions {
+export interface IRouterOptions {
   /** 是否自动生成2.0的routers，默认：`false` */
   enabled: boolean;
   /** 是否强制刷新2.0的routers，默认：`false` */
@@ -19,7 +18,7 @@ export interface RouterOptions {
   fileType: "js" | "ts";
 }
 
-export const defaultRouterOptions: InnerRouterOptions = {
+export const defaultRouterOptions: IInnerRouterOptions = {
   enabled: false,
   always: false,
   ctorFolder: "app/controllers",
@@ -40,7 +39,7 @@ export function initRouters(
     always = defaultRouterOptions.always,
     appRoot: root = defaultRouterOptions.appRoot,
     fileType = defaultRouterOptions.fileType
-  }: Partial<InnerRouterOptions>,
+  }: Partial<IInnerRouterOptions>,
   onEnd?: (data: { routers?: IRouter; error?: Error }) => void
 ) {
   if (open) {

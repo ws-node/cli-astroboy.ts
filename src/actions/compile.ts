@@ -1,7 +1,7 @@
-import { CommandPlugin } from "../base";
+import { ICommandPlugin } from "../base";
 import { action } from "./dev";
 
-export const CompilePlugin: CommandPlugin = {
+export const CompilePlugin: ICommandPlugin = {
   name: "compile",
   description: "编译app",
   options: [["-C, --config [atcConfig]", "使用自定义的atc.config.js配置文件"]],

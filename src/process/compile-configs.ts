@@ -3,15 +3,7 @@ import * as ts from "typescript";
 import { compileFn } from "../builders/config-compiler";
 import { CancellationToken as CT } from "../utils/cancellation-token";
 
-const {
-  CONFIG_ROOT,
-  OUTPUT_ROOT,
-  FORCE,
-  ENABLED,
-  CHANGES,
-  __TSCONFIG,
-  USE_CANCEL
-} = process.env;
+const { CONFIG_ROOT, OUTPUT_ROOT, FORCE, ENABLED, CHANGES, __TSCONFIG, USE_CANCEL } = process.env;
 
 async function run(ct?: CT) {
   let results: string[] = [];

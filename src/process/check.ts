@@ -1,7 +1,7 @@
+import * as ts from "typescript";
 import { CancellationToken as CT } from "../utils/cancellation-token";
 import { NormalizedMessage, Severity } from "../utils/normalized-msg";
-import { loadProgramConfig, createProgram } from "../utils/type-check";
-import * as ts from "typescript";
+import { createProgram, loadProgramConfig } from "../utils/type-check";
 
 const { TSCONFIG } = process.env;
 
@@ -44,14 +44,11 @@ async function validation(program: ts.Program, cancellationToken: CT) {
           new NormalizedMessage({
             type: NormalizedMessage.TYPE_DIAGNOSTIC,
             code: i.code,
-            severity: ts.DiagnosticCategory[
-              i.category
-            ].toLowerCase() as Severity,
+            severity: ts.DiagnosticCategory[i.category].toLowerCase() as Severity,
             content: ts.flattenDiagnosticMessageText(i.messageText, "\n"),
             file: i.file!.fileName,
             line: i.file!.getLineAndCharacterOfPosition(i.start || 0).line + 1,
-            character:
-              i.file!.getLineAndCharacterOfPosition(i.start || 0).character + 1
+            character: i.file!.getLineAndCharacterOfPosition(i.start || 0).character + 1
           })
       )
     );

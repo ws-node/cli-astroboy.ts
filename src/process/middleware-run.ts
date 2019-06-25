@@ -1,14 +1,7 @@
-import { middlewareCompileFn } from "../builders/middleware-cmp";
 import chalk from "chalk";
+import { middlewareCompileFn } from "../builders/middleware-cmp";
 
-const {
-  FOLDER_ROOT,
-  OUTPUT_ROOT,
-  FORCE,
-  ENABLED,
-  CHANGES,
-  __TSCONFIG
-} = process.env;
+const { FOLDER_ROOT, OUTPUT_ROOT, FORCE, ENABLED, CHANGES, __TSCONFIG } = process.env;
 
 try {
   const changes: string[] = JSON.parse(CHANGES!);
