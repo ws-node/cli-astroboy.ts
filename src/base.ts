@@ -37,6 +37,7 @@ export interface IConfigCompilerCmdConfig {
   configroot?: string;
   outputroot?: string;
   tsconfig?: string;
+  increment?: boolean;
 }
 
 export interface IMiddlewareCompilerCmdConfig {
@@ -45,6 +46,7 @@ export interface IMiddlewareCompilerCmdConfig {
   root?: string;
   output?: string;
   tsconfig?: string;
+  increment?: boolean;
 }
 
 export interface ICmdConfig {

@@ -150,11 +150,11 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   let useConfigHMR = false;
   let configWatchRoot = "";
   if (config.configCompiler) {
-    const { enabled = false, configroot = "", hmr = true } = {
+    const { enabled = false, configroot = "", increment = true } = {
       ...defaultC,
       ...config.configCompiler
     };
-    useConfigHMR = hmr;
+    useConfigHMR = increment;
     configWatchRoot = path.resolve(projectRoot, configroot);
     if (enabled && (config.compile || onlyCompile)) useConfigCompile = true;
   }
@@ -163,11 +163,11 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   let useMiddlewareHMR = false;
   let middleWatchRoot = "";
   if (config.middlewareCompiler) {
-    const { enabled = false, root = "", hmr = true } = {
+    const { enabled = false, root = "", increment = true } = {
       ...defaultM,
       ...config.middlewareCompiler
     };
-    useMiddlewareHMR = hmr;
+    useMiddlewareHMR = increment;
     middleWatchRoot = path.resolve(projectRoot, root);
     if (enabled && (config.compile || onlyCompile)) useMiddlewareCompile = true;
   }

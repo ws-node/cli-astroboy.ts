@@ -47,12 +47,12 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
     const useHMR = watchedFiles.length > 0;
     console.log(`root  ==> "${chalk.green(rootFolder!)}"`);
     console.log(`force ==> ${chalk.magenta(String(!!force))}`);
-    console.log(`HMR   ==> ${chalk.magenta(String(!!useHMR))}`);
+    console.log(`incre ==> ${chalk.magenta(String(!!useHMR))}`);
     console.log("");
     if (useHMR) {
       const valid = watchedFiles.every(p => p.startsWith(middleRootFolder));
       if (!valid) {
-        throw new Error("Middleware-Compiler Error: paths of HMR changed files must startsWith rootFolder.");
+        throw new Error("Middleware-Compiler Error: paths of increment changed files must startsWith rootFolder.");
       }
     }
     const files = !useHMR

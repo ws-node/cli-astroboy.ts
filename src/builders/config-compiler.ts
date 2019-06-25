@@ -50,12 +50,12 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
     const useHMR = watchedFiles.length > 0;
     console.log(`root  ==> "${chalk.green(configRoot!)}"`);
     console.log(`force ==> ${chalk.magenta(String(!!force))}`);
-    console.log(`HMR   ==> ${chalk.magenta(String(!!useHMR))}`);
+    console.log(`incre ==> ${chalk.magenta(String(!!useHMR))}`);
     console.log("");
     if (useHMR) {
       const valid = watchedFiles.every(p => p.startsWith(configFolder));
       if (!valid) {
-        throw new Error("Config-Compiler Error: paths of HMR changed files must startsWith configFolder.");
+        throw new Error("Config-Compiler Error: paths of increment changed files must startsWith configFolder.");
       }
     }
     const files = !useHMR
