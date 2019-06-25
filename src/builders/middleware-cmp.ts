@@ -174,9 +174,9 @@ function createJsFile(
     throw new Error("Middleware-Compiler Error: invalid middleware function params type.");
   }
   const procedures: ImportsIndex[] = [];
-  procedures.push([0, "// [astroboy.ts] 自动生成的代码"]);
+  procedures.push([0, "// [@exoskeleton/cli] 自动生成的代码"]);
   if (params.length > 0) {
-    procedures.push([ImportStyle.Named, `const { injectScope } = require("astroboy.ts");`]);
+    procedures.push([ImportStyle.Named, `const { injectScope } = require("@exoskeleton/core");`]);
   }
   procedures.push(...imports);
   procedures.push(...otherFuncs.map<ImportsIndex>(i => [8, i.toString()]));
@@ -205,9 +205,9 @@ function createTsFile(
     throw new Error("Middleware-Compiler Error: invalid middleware function params type.");
   }
   const procedures: ImportsIndex[] = [];
-  procedures.push([0, "// [astroboy.ts] 自动生成的代码"]);
+  procedures.push([0, "// [@exoskeleton/cli] 自动生成的代码"]);
   if (params.length > 0) {
-    procedures.push([ImportStyle.Named, `import { injectScope, IMiddlewaresScope } from "astroboy.ts";`]);
+    procedures.push([ImportStyle.Named, `import { injectScope, IMiddlewaresScope } from "@exoskeleton/core";`]);
   }
   procedures.push(...imports);
   procedures.push(...otherFuncs.map<ImportsIndex>(i => [8, i.toString()]));

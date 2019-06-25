@@ -96,7 +96,7 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
         throw new Error("Config-Compiler Error: exports must be a function or object.");
       }
       const imports = ImportsHelper.toList(context, "js");
-      const preRuns = ["// [astroboy.ts] 自动生成的代码", ...imports, ...procedures];
+      const preRuns = ["// [@exoskeleton/cli] 自动生成的代码", ...imports, ...procedures];
       const exportStr = `${preRuns.join("\n")}\nmodule.exports = (${finalExports.toString()})();`;
       if (!!force || !fs.existsSync(compiledPath) || useHMR) {
         fs.appendFileSync(compiledPath, exportStr, { flag: "w" });

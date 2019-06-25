@@ -15,7 +15,7 @@ interface IPreProcess {
 }
 
 /**
- * ## astroboy.ts 预处理函数
+ * ## @exoskeleton/core 预处理函数
  * * 硬核初始化routers
  * @description
  * @author Big Mogician
@@ -32,7 +32,7 @@ export function preInitFn(configs: Partial<IPreProcess>, inEnd?: any) {
 }
 
 /**
- * ## astroboy.ts 配置文件预处理函数
+ * ## @exoskeleton/core 配置文件预处理函数
  * * 硬核初始化config
  * @author Big Mogician
  * @export
@@ -43,7 +43,7 @@ export function preConfigCompiler(configs: Partial<IConfigCompilerOptions>) {
 }
 
 /**
- * ## astroboy.ts 中间件预处理函数
+ * ## @exoskeleton/core 中间件预处理函数
  * * 硬核初始化middleware
  * @author Big Mogician
  * @export

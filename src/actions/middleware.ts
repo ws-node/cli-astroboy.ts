@@ -27,14 +27,10 @@ export const MiddlewarePlugin: CommandPlugin = {
   },
   action(_, command: IMiddlewareCmdOptions) {
     if (_ !== "middleware") return;
-    console.log(
-      chalk.green("========= [ASTROBOY.TS] <==> MIDDLEWARES ========\n")
-    );
+    console.log(chalk.green("========= [Exoskeleton CLI] <==> MIDDLEWARES ========\n"));
     const projectRoot = process.cwd();
     const fileName = command.config || "atc.config.js";
-    console.log(
-      `${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`
-    );
+    console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
 
     let config: MiddlewareCompilerCmdConfig;
     const defaultConfigs = TRANSFROM.middlewares({});
@@ -62,12 +58,7 @@ export function runMiddlewareCompile(
   intergradeOptions: IntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
-  const {
-    changes = [],
-    type = "spawn",
-    token,
-    defineCancel
-  } = intergradeOptions;
+  const { changes = [], type = "spawn", token, defineCancel } = intergradeOptions;
   try {
     const tsnode = require.resolve("ts-node");
     console.log("");
@@ -87,10 +78,7 @@ export function runMiddlewareCompile(
         FORCE: String(config.force === true),
         ENABLED: String(config.enabled === true),
         CHANGES: JSON.stringify(changes || []),
-        __TSCONFIG: path.resolve(
-          projectRoot,
-          config.tsconfig || "tsconfig.json"
-        )
+        __TSCONFIG: path.resolve(projectRoot, config.tsconfig || "tsconfig.json")
       }
     })
       .then(() => {

@@ -5,11 +5,7 @@ import { loadConfig } from "../utils/load-config";
 import { startChildProcess } from "../utils/execChild";
 import { TRANSFROM } from "../utils/transform";
 import { CancellationToken } from "../utils/cancellation-token";
-import {
-  CommandPlugin,
-  ConfigCompilerCmdConfig,
-  IntergradeOptions
-} from "../base";
+import { CommandPlugin, ConfigCompilerCmdConfig, IntergradeOptions } from "../base";
 
 export interface IConfigCmdOptions {
   force?: boolean;
@@ -30,12 +26,10 @@ export const ConfigPlugin: CommandPlugin = {
   },
   action(_, command: IConfigCmdOptions) {
     if (_ !== "config") return;
-    console.log(chalk.green("========= [ASTROBOY.TS] <==> CONFIGS ========\n"));
+    console.log(chalk.green("========= [Exoskeleton CLI] <==> CONFIGS ========\n"));
     const projectRoot = process.cwd();
     const fileName = command.config || "atc.config.js";
-    console.log(
-      `${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}\n`
-    );
+    console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}\n`);
 
     let config: ConfigCompilerCmdConfig;
     const defaultConfigs = TRANSFROM.configs({});
@@ -63,12 +57,7 @@ export function runConfigCompile(
   intergradeOptions: IntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
-  const {
-    changes = [],
-    type = "spawn",
-    token,
-    defineCancel
-  } = intergradeOptions;
+  const { changes = [], type = "spawn", token, defineCancel } = intergradeOptions;
   try {
     const tsnode = require.resolve("ts-node");
     console.log("");
@@ -88,10 +77,7 @@ export function runConfigCompile(
         FORCE: String(config.force === true),
         ENABLED: String(config.enabled === true),
         CHANGES: JSON.stringify(changes || []),
-        __TSCONFIG: path.resolve(
-          projectRoot,
-          config.tsconfig || "tsconfig.json"
-        )
+        __TSCONFIG: path.resolve(projectRoot, config.tsconfig || "tsconfig.json")
       }
     })
       .then(() => {

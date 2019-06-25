@@ -159,14 +159,7 @@ function createTsRouterFile({
     if (!controller.prototype["@router"]) return;
     // 非V2，则判断是老版本的Router
     if (!controller.prototype["@router::v2"]) return;
-    const file = createFile(
-      routerPath,
-      baseRouter,
-      commonName,
-      turn,
-      fileType,
-      urlRoot
-    );
+    const file = createFile(routerPath, baseRouter, commonName, turn, fileType, urlRoot);
     const _PATH = `${routerPath}/${commonName}.${fileType}`;
     if (fs.existsSync(_PATH)) {
       const oldFile = fs.readFileSync(_PATH, { flag: "r" });
@@ -193,9 +186,7 @@ function createFile(
   const controllerName =
     routerPath === baseRouter
       ? commonName
-      : `${routerPath
-          .replace(`${baseRouter}/`, "")
-          .replace(/\//g, ".")}.${commonName}`;
+      : `${routerPath.replace(`${baseRouter}/`, "").replace(/\//g, ".")}.${commonName}`;
   const turnLod = [".."];
   for (let index = 0; index < turn; index++) {
     turnLod.push("..");
@@ -203,39 +194,26 @@ function createFile(
   const turnStr =
     routerPath === baseRouter
       ? `${turnLod.join("/")}/controllers/${commonName}`
-      : `${turnLod.join("/")}/controllers/${routerPath.replace(
-          `${baseRouter}/`,
-          ""
-        )}/${commonName}`;
+      : `${turnLod.join("/")}/controllers/${routerPath.replace(`${baseRouter}/`, "")}/${commonName}`;
   const file =
-    fileType === "ts"
-      ? createTsFile(turnStr, controllerName, urlRoot)
-      : createJsFile(turnStr, controllerName, urlRoot);
+    fileType === "ts" ? createTsFile(turnStr, controllerName, urlRoot) : createJsFile(turnStr, controllerName, urlRoot);
   return file;
 }
 
-function createTsFile(
-  turnStr: string,
-  controllerName: string,
-  urlRoot: string
-): string[] {
+function createTsFile(turnStr: string, controllerName: string, urlRoot: string): string[] {
   return [
-    "// [astroboy.ts] 自动生成的代码",
+    "// [@exoskeleton/cli] 自动生成的代码",
     `import CTOR from "${turnStr}";`,
-    `import { buildRouter } from "astroboy.ts";`,
+    `import { buildRouter } from "@exoskeleton/core";`,
     `export = buildRouter(CTOR, "${controllerName}", "${urlRoot}");`
   ];
 }
 
-function createJsFile(
-  turnStr: string,
-  controllerName: string,
-  urlRoot: string
-): string[] {
+function createJsFile(turnStr: string, controllerName: string, urlRoot: string): string[] {
   return [
-    "// [astroboy.ts] 自动生成的代码",
+    "// [@exoskeleton/cli] 自动生成的代码",
     `const CTOR = require("${turnStr}");`,
-    `const { buildRouter } = require("astroboy.ts");`,
+    `const { buildRouter } = require("@exoskeleton/core");`,
     `module.exports = buildRouter(CTOR, "${controllerName}", "${urlRoot}");`
   ];
 }

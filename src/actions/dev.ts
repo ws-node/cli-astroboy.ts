@@ -92,7 +92,7 @@ export const DevPlugin: CommandPlugin = {
 };
 
 export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
-  console.log(chalk.green("========= [ASTROBOY.TS] <==> DEVTOOL ========\n"));
+  console.log(chalk.green("========= [Exoskeleton CLI] <==> DEVTOOL ========\n"));
   const projectRoot = process.cwd();
   if (!fs.existsSync(`${projectRoot}/app/app.ts`)) {
     console.log(chalk.yellow("PROJECT INIT FAILED\n"));

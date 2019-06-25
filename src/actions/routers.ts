@@ -19,7 +19,7 @@ export interface IRouterCmdOptions {
 
 export const RouterPlugin: CommandPlugin = {
   name: "router",
-  description: "astroboy.ts routers cmd",
+  description: "@exoskeleton/cli routers cmd",
   options: [
     ["-C, --config [atcConfig]", "use atc.config.js"],
     ["-E, --enabled [isEnabled]", "open routers-auto-build"],
@@ -41,11 +41,9 @@ export const RouterPlugin: CommandPlugin = {
   },
   action(_, command: IRouterCmdOptions) {
     if (_ !== "router") return;
-    console.log(chalk.green("========= [ASTROBOY.TS] <==> ROUTER ========\n"));
+    console.log(chalk.green("========= [Exoskeleton CLI] <==> ROUTER ========\n"));
     const fileName = command.config || "atc.config.js";
-    console.log(
-      `${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`
-    );
+    console.log(`${chalk.white("🤨 - TRY LOAD FILE : ")}${chalk.yellow(fileName)}`);
     const projectRoot = process.cwd();
     let config: RouterConfig;
     const defaultConfigs = {
@@ -101,10 +99,7 @@ export function runRoutersBuilder(
       env: {
         CTOR_PATH: path.resolve(projectRoot, "app/controllers"),
         ROUTER_PATH: path.resolve(projectRoot, "app/routers"),
-        ASTT_ENABLED:
-          config.enabled === undefined
-            ? "true"
-            : String(!!config.enabled === true),
+        ASTT_ENABLED: config.enabled === undefined ? "true" : String(!!config.enabled === true),
         ASTT_ALWAYS: String(!!config.always),
         APP_ROOT: config.approot || "",
         FILE_TYPE: config.filetype || "js",

@@ -1,6 +1,6 @@
 # @exoskeleton/cli
 
-astroboy.ts 脚手架和 cli 工具
+@exoskeleton/core 脚手架和 cli 工具
 
 > 配合[@exoskeleton/core](https://github.com/exoskeleton-astroboy/core.git)使用效果更佳
 
