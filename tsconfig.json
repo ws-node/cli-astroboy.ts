@@ -5,6 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
+    "sourceMap": true,
     "strict": true,
     "importHelpers": true,
     "esModuleInterop": true,
