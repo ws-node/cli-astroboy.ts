@@ -1,0 +1,8 @@
+{
+  "name": "@exoskeleton/cli",
+  "version": "0.0.1-rc.1",
+  "main": "index.js",
+  "repository": "https://github.com/ws-node/cli-astroboy.ts.git",
+  "author": "Big Mogician <sunaoran@youzan.com>",
+  "license": "MIT"
+}
