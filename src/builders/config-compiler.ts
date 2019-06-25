@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import ts from "typescript";
+import { ts, visitCompile } from "../compiler/core";
 import { compileForEach, ICompileContext, ImportsHelper } from "../utils/ast-compiler";
 import { createProgram, loadProgramConfig } from "../utils/type-check";
 
@@ -62,52 +62,51 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
       ? initCompilePreSteps(configFolder, force, outputFolder)
       : watchedFiles.map(each => path.relative(configFolder, each));
     const compileds: string[] = [];
-    const opts = loadProgramConfig(tsconfig!, {
-      noEmit: true,
-      skipLibCheck: true
-    });
-    let program!: ts.Program;
-    program = createTSCompiler(opts, files.map(i => `${configFolder}/${i}`), program);
-    files.forEach(filePath => {
-      const sourcePath = `${configFolder}/${filePath}`;
-      const compiledPath = `${outputFolder}/${filePath.replace(/\.ts$/, ".js")}`;
-      const file = program.getSourceFile(sourcePath);
-      const context = createContext(configFolder, outputFolder);
-      compileForEach(file!, context);
-      const exports = require(sourcePath);
-      if (!exports) return;
-      let finalExports: any;
-      const procedures: string[] = [];
-      if (typeof exports === "function") {
-        finalExports = exports;
-      } else if (typeof exports === "object") {
-        const { default: excuClass, ...others } = exports;
-        if (typeof excuClass !== "function") {
-          throw new Error("Config-Compiler Error: default exports must be a function.");
-        } else {
-          finalExports = excuClass;
-          Object.keys(others || {}).forEach(name => {
-            if (typeof others[name] === "function" && !!others[name].name) {
-              procedures.push(others[name].toString());
-            }
-          });
+    visitCompile(tsconfig!, {
+      files,
+      getSourceFilePath: (filepath: string) => `${configFolder}/${filepath}`,
+      visitor: node => {
+        if (ts.isFunctionDeclaration(node) && (<ts.FunctionDeclaration>node).modifiers) {
+          const modifiers = (<ts.FunctionDeclaration>node).modifiers!;
+          const isExport = modifiers.findIndex(i => i.kind === ts.SyntaxKind.ExportKeyword) >= 0;
+          const isDefault = modifiers.findIndex(i => i.kind === ts.SyntaxKind.DefaultKeyword) >= 0;
+          if (isExport && isDefault) {
+            const source = <ts.FunctionDeclaration>node;
+            return ts.createExportAssignment(
+              [],
+              [],
+              true,
+              ts.createFunctionExpression(
+                [],
+                source.asteriskToken,
+                source.name,
+                source.typeParameters,
+                source.parameters,
+                source.type,
+                source.body!
+              )
+            );
+          }
         }
-      } else {
-        throw new Error("Config-Compiler Error: exports must be a function or object.");
-      }
-      const imports = ImportsHelper.toList(context, "js");
-      const preRuns = ["// [@exoskeleton/cli] 自动生成的代码", ...imports, ...procedures];
-      const exportStr = `${preRuns.join("\n")}\nmodule.exports = (${finalExports.toString()})();`;
-      if (!!force || !fs.existsSync(compiledPath) || useHMR) {
-        fs.appendFileSync(compiledPath, exportStr, { flag: "w" });
-        return compileds.push(compiledPath);
-      }
-      const oldFile = fs.readFileSync(compiledPath, { flag: "r" });
-      if (oldFile.toString() !== exportStr) {
-        fs.appendFileSync(compiledPath, exportStr, { flag: "w" });
-        compileds.push(compiledPath);
-      } else {
-        return;
+        if (ts.isExportAssignment(node)) {
+          return ts.createExportAssignment([], [], true, (<ts.ExportAssignment>node).expression);
+        }
+        return node;
+      },
+      emit: (compiled, content) => {
+        const relaPath = path.relative(configFolder, compiled);
+        const compiledPath = path.resolve(outputFolder, relaPath.replace(/\.ts$/, ".js"));
+        if (!!force || !fs.existsSync(compiledPath) || useHMR) {
+          fs.appendFileSync(compiledPath, content, { flag: "w" });
+          return compileds.push(compiledPath);
+        }
+        const oldFile = fs.readFileSync(compiledPath, { flag: "r" });
+        if (oldFile.toString() !== content) {
+          fs.appendFileSync(compiledPath, content, { flag: "w" });
+          compileds.push(compiledPath);
+        } else {
+          return;
+        }
       }
     });
     return compileds;
@@ -125,7 +124,7 @@ function createContext(configFolder: string, outputFolder: string): ICompileCont
   };
 }
 
-function createTSCompiler(options: ts.ParsedCommandLine, sourcePaths: string[], program: ts.Program): ts.Program {
+function createTSCompiler(options: ts.ParsedCommandLine, sourcePaths: string[], program?: ts.Program): ts.Program {
   return createProgram(
     {
       ...options,

@@ -6,8 +6,14 @@ import { MiddlewarePlugin } from "./actions/middleware";
 import { RouterPlugin } from "./actions/routers";
 import { ICommandPlugin } from "./base";
 
-// tslint:disable-next-line: no-var-requires
-const pkg = require("./package.json");
+let pkg;
+try {
+  // tslint:disable-next-line: no-var-requires
+  pkg = require("./package.json");
+} catch (e) {
+  /** ignore */
+  pkg = {};
+}
 
 function initCommand(plugin: ICommandPlugin) {
   const program = commander.name(plugin.name).description(plugin.description);
