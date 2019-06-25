@@ -7,7 +7,7 @@
       "options": ["log"]
     },
     "no-implicit-dependencies": [true, "dev", []],
-    "no-submodule-imports": [true, "lodash"],
+    "no-submodule-imports": [true, "lodash", "@bigmogician/publisher"],
     "no-unused-expression": false,
     "callable-types": false,
     "unified-signatures": false,

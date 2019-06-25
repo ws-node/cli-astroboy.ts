@@ -6,7 +6,6 @@ export const config: IConfig = {
   useYarn: false,
   whiteSpace: "  ",
   debug: false,
-  register: "http://registry.npm.s.qima-inc.com",
   outTransform: json => ({
     ...json,
     main: "index.js",
