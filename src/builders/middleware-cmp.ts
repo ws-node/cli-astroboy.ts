@@ -195,7 +195,8 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                     ) {
                       useDI = false;
                     }
-                  } else if (types.every(i => i.kind === ts.SyntaxKind.TypeReference)) {
+                  }
+                  if (types.every(i => i.kind === ts.SyntaxKind.TypeReference)) {
                     funcDepts = (types as any[])
                       .map((i: ts.TypeReferenceNode) => i.typeName)
                       .map((i: ts.QualifiedName | ts.Identifier) =>
