@@ -99,7 +99,7 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
             const expression = (<ts.ExportAssignment>node).expression;
             if (ts.isIdentifier(expression)) {
               const found = sourcefile.statements.find(
-                i => ts.isFunctionDeclaration(i) && !!i.name && i.name === expression
+                i => ts.isFunctionDeclaration(i) && !!i.name && i.name.text === expression.text
               );
               return ts.createExportAssignment([], [], true, !found ? expression : ts.createCall(expression, [], []));
             }

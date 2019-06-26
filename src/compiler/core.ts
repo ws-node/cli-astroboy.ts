@@ -1,10 +1,14 @@
 import ts from "typescript";
 import { createProgram, loadProgramConfig } from "../utils/type-check";
 
+export interface IVisitor {
+  (node: ts.Node, sourcefile: ts.SourceFile, data: any): ts.Node | ts.Node[];
+}
+
 export interface IVisitCompileContext {
   transpile: boolean;
   files: string[];
-  visitors: Array<(node: ts.Node, sourcefile: ts.SourceFile, data: any) => ts.Node | ts.Node[]>;
+  visitors: IVisitor[];
   getSourceFilePath(filepath: string): string;
   emit(filepath: string, content: string): void;
 }
@@ -23,13 +27,12 @@ export function visitCompile(tsconfig: string, context: IVisitCompileContext) {
     omitTrailingSemicolon: true,
     noEmitHelpers: false
   });
-  const data: any = {};
+  const metadata: any = {};
   const result = ts.transform(
-    files.map(filepath => {
-      const sourcePath = getSourceFilePath(filepath);
-      return app.getSourceFile(sourcePath)!;
-    }),
-    visitors.map(visitor => ctx => node => ts.visitEachChild(node, n => visitor(n, node, data), ctx))
+    files.map(filepath => app.getSourceFile(getSourceFilePath(filepath))!),
+    visitors.map(visitor => ctx => node =>
+      ts.visitEachChild(node, n => visitor(n, node, metadata[node.fileName] || (metadata[node.fileName] = {})), ctx)
+    )
   );
   result.transformed.forEach(compiled => {
     const fileStr = !transpile

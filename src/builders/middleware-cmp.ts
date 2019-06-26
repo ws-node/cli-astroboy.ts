@@ -40,7 +40,9 @@ export const defaultConfigCompilerOptions: IMiddlewareCompilerOptions = {
   outFolder: "app/middlewares"
 };
 
-type ImportsIndex = [number, string];
+const CORE_MODULE = "@exoskeleton/core";
+const INJECT_SCOPE = "injectScope";
+const INTERF_SCOPE = "IMiddlewaresScope";
 
 export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOptions>): string[] {
   const { enabled = false, force = false, rootFolder, outFolder, tsconfig, fileList = [] } = options;
@@ -105,7 +107,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
         (node, _, data: ITransformSharedData) => {
           // 检查@exo/core是否导入，完成导入项补偿
           if (ts.isImportDeclaration(node)) {
-            if (ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === "@exoskeleton/core") {
+            if (ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === CORE_MODULE) {
               data.coreImportStyle = "import-from";
               if (
                 node.importClause &&
@@ -114,11 +116,11 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
               ) {
                 const named = node.importClause.namedBindings;
                 const namedEles = [...named.elements];
-                if (named.elements.findIndex(a => a.name.text === "IMiddlewaresScope") < 0) {
-                  namedEles.push(ts.createImportSpecifier(undefined, ts.createIdentifier("IMiddlewaresScope")));
+                if (named.elements.findIndex(a => a.name.text === INTERF_SCOPE) < 0) {
+                  namedEles.push(ts.createImportSpecifier(undefined, ts.createIdentifier(INTERF_SCOPE)));
                 }
-                if (named.elements.findIndex(a => a.name.text === "injectScope") < 0) {
-                  namedEles.push(ts.createImportSpecifier(undefined, ts.createIdentifier("injectScope")));
+                if (named.elements.findIndex(a => a.name.text === INJECT_SCOPE) < 0) {
+                  namedEles.push(ts.createImportSpecifier(undefined, ts.createIdentifier(INJECT_SCOPE)));
                 }
                 return ts.updateImportDeclaration(
                   node,
@@ -134,7 +136,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
             if (
               ts.isExternalModuleReference(node.moduleReference) &&
               ts.isStringLiteral(node.moduleReference.expression) &&
-              node.moduleReference.expression.text === "@exoskeleton/core"
+              node.moduleReference.expression.text === CORE_MODULE
             ) {
               data.coreImportStyle = "import-require";
             }
@@ -152,11 +154,11 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                 ts.createImportClause(
                   undefined,
                   ts.createNamedImports([
-                    ts.createImportSpecifier(undefined, ts.createIdentifier("injectScope")),
-                    ts.createImportSpecifier(undefined, ts.createIdentifier("IMiddlewaresScope"))
+                    ts.createImportSpecifier(undefined, ts.createIdentifier(INJECT_SCOPE)),
+                    ts.createImportSpecifier(undefined, ts.createIdentifier(INTERF_SCOPE))
                   ])
                 ),
-                ts.createStringLiteral("@exoskeleton/core")
+                ts.createStringLiteral(CORE_MODULE)
               ),
               node
             ];
@@ -220,7 +222,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                     .filter((i: any) => ts.isImportDeclaration(i) || ts.isImportEqualsDeclaration(i))
                     .findIndex(i => {
                       if (ts.isImportDeclaration(i) && ts.isStringLiteral((<ts.ImportDeclaration>i).moduleSpecifier)) {
-                        return (<ts.StringLiteral>i.moduleSpecifier).text === "@exoskeleton/core";
+                        return (<ts.StringLiteral>i.moduleSpecifier).text === CORE_MODULE;
                       } else if (
                         ts.isImportEqualsDeclaration(i) &&
                         ts.isExternalModuleReference((<ts.ImportEqualsDeclaration>i).moduleReference) &&
@@ -231,7 +233,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                         return (
                           (<ts.StringLiteral>(
                             (<ts.ExternalModuleReference>(<ts.ImportEqualsDeclaration>i).moduleReference).expression
-                          )).text === "@exoskeleton/core"
+                          )).text === CORE_MODULE
                         );
                       } else {
                         return false;
@@ -254,8 +256,8 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                   : createDIWrapperExportFunction(
                       exportName,
                       coreNamed
-                        ? ts.createIdentifier("injectScope")
-                        : ts.createPropertyAccess(ts.createIdentifier(coreSpc), ts.createIdentifier("injectScope")),
+                        ? ts.createIdentifier(INJECT_SCOPE)
+                        : ts.createPropertyAccess(ts.createIdentifier(coreSpc), ts.createIdentifier(INJECT_SCOPE)),
                       funcDepts
                     );
               }
