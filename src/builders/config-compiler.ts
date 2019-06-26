@@ -2,8 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { ts, visitCompile } from "../compiler/core";
-import { compileForEach, ICompileContext, ImportsHelper } from "../utils/ast-compiler";
-import { createProgram, loadProgramConfig } from "../utils/type-check";
+import { transformImportsPath } from "../compiler/statements";
 
 export interface IConfigCompilerOptions {
   /** tsconfig, 默认：`undefined` */
@@ -63,36 +62,44 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
       : watchedFiles.map(each => path.relative(configFolder, each));
     const compileds: string[] = [];
     visitCompile(tsconfig!, {
+      transpile: true,
       files,
       getSourceFilePath: (filepath: string) => `${configFolder}/${filepath}`,
-      visitor: node => {
-        if (ts.isFunctionDeclaration(node) && (<ts.FunctionDeclaration>node).modifiers) {
-          const modifiers = (<ts.FunctionDeclaration>node).modifiers!;
-          const isExport = modifiers.findIndex(i => i.kind === ts.SyntaxKind.ExportKeyword) >= 0;
-          const isDefault = modifiers.findIndex(i => i.kind === ts.SyntaxKind.DefaultKeyword) >= 0;
-          if (isExport && isDefault) {
-            const source = <ts.FunctionDeclaration>node;
-            return ts.createExportAssignment(
-              [],
-              [],
-              true,
-              ts.createFunctionExpression(
+      visitors: [
+        node => {
+          // 涉及到输出位置调整，需要重新解析imports的相对路径
+          node = transformImportsPath(node, configFolder, outputFolder);
+          // 直接默认导出函数声明的情况
+          if (ts.isFunctionDeclaration(node) && (<ts.FunctionDeclaration>node).modifiers) {
+            const modifiers = (<ts.FunctionDeclaration>node).modifiers!;
+            const isExport = modifiers.findIndex(i => i.kind === ts.SyntaxKind.ExportKeyword) >= 0;
+            const isDefault = modifiers.findIndex(i => i.kind === ts.SyntaxKind.DefaultKeyword) >= 0;
+            if (isExport && isDefault) {
+              const source = <ts.FunctionDeclaration>node;
+              return ts.createExportAssignment(
                 [],
-                source.asteriskToken,
-                source.name,
-                source.typeParameters,
-                source.parameters,
-                source.type,
-                source.body!
-              )
-            );
+                [],
+                true,
+                ts.createFunctionExpression(
+                  [],
+                  source.asteriskToken,
+                  source.name,
+                  source.typeParameters,
+                  source.parameters,
+                  source.type,
+                  source.body!
+                )
+              );
+            }
           }
+          // 默认导出变量声明的情况
+          if (ts.isExportAssignment(node)) {
+            return ts.createExportAssignment([], [], true, (<ts.ExportAssignment>node).expression);
+          }
+          // 其余情况不支持编译，不做改变
+          return node;
         }
-        if (ts.isExportAssignment(node)) {
-          return ts.createExportAssignment([], [], true, (<ts.ExportAssignment>node).expression);
-        }
-        return node;
-      },
+      ],
       emit: (compiled, content) => {
         const relaPath = path.relative(configFolder, compiled);
         const compiledPath = path.resolve(outputFolder, relaPath.replace(/\.ts$/, ".js"));
@@ -113,25 +120,6 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
   } catch (error) {
     throw error;
   }
-}
-
-function createContext(configFolder: string, outputFolder: string): ICompileContext {
-  return {
-    main: { root: configFolder, out: outputFolder },
-    imports: {},
-    functions: {},
-    exports: {}
-  };
-}
-
-function createTSCompiler(options: ts.ParsedCommandLine, sourcePaths: string[], program?: ts.Program): ts.Program {
-  return createProgram(
-    {
-      ...options,
-      fileNames: sourcePaths
-    },
-    program
-  );
 }
 
 function initCompilePreSteps(configFolder: string, force: boolean, outputFolder: string) {
