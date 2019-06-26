@@ -2,7 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { ts, visitCompile } from "../compiler/core";
-import { transformImportsPath } from "../compiler/statements";
+import { transformImportsPath, wrapAutoRunFunction } from "../compiler/statements";
 
 export interface IConfigCompilerOptions {
   /** tsconfig, 默认：`undefined` */
@@ -66,7 +66,7 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
       files,
       getSourceFilePath: (filepath: string) => `${configFolder}/${filepath}`,
       visitors: [
-        node => {
+        (node, sourcefile) => {
           // 涉及到输出位置调整，需要重新解析imports的相对路径
           node = transformImportsPath(node, configFolder, outputFolder);
           // 直接默认导出函数声明的情况
@@ -80,21 +80,32 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
                 [],
                 [],
                 true,
-                ts.createFunctionExpression(
-                  [],
-                  source.asteriskToken,
-                  source.name,
-                  source.typeParameters,
-                  source.parameters,
-                  source.type,
-                  source.body!
+                wrapAutoRunFunction(
+                  ts.createFunctionExpression(
+                    [],
+                    source.asteriskToken,
+                    source.name,
+                    source.typeParameters,
+                    source.parameters,
+                    source.type,
+                    source.body!
+                  )
                 )
               );
             }
           }
           // 默认导出变量声明的情况
           if (ts.isExportAssignment(node)) {
-            return ts.createExportAssignment([], [], true, (<ts.ExportAssignment>node).expression);
+            const expression = (<ts.ExportAssignment>node).expression;
+            if (ts.isIdentifier(expression)) {
+              const found = sourcefile.statements.find(
+                i => ts.isFunctionDeclaration(i) && !!i.name && i.name === expression
+              );
+              return ts.createExportAssignment([], [], true, !found ? expression : ts.createCall(expression, [], []));
+            }
+            if (ts.isArrowFunction(expression) || ts.isFunctionExpression(expression)) {
+              return ts.createExportAssignment([], [], true, wrapAutoRunFunction(expression));
+            }
           }
           // 其余情况不支持编译，不做改变
           return node;

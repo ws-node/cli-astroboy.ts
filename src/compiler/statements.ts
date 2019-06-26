@@ -6,6 +6,10 @@ function resolveRelativePath(reference: string, sourceRoot: string, outputRoot: 
   return path.relative(outputRoot, abosolute);
 }
 
+export function wrapAutoRunFunction(func: ts.FunctionExpression | ts.ArrowFunction) {
+  return ts.createCall(ts.createParen(func), [], []);
+}
+
 export function transformImportsPath(node: ts.Node, sourceRoot: string, outputRoot: string) {
   // import ... from "./xxxxxx"
   if (ts.isImportDeclaration(node)) {
