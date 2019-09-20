@@ -18,10 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@bigmogician/publisher@^1.0.11":
-  version "1.0.11"
-  resolved "https://registry.npmjs.org/@bigmogician/publisher/-/publisher-1.0.11.tgz#82907ef06025f5f26a9a351a44e83c87a34b1140"
-  integrity sha512-ztm5Dutis+CQ09FoJy9YLjtAHfeQqK2ItJgVpMPghtUX202tvAQ834bjP94gy2Y4Otvbp8zJ39Ar6evmZ29V4Q==
+"@bigmogician/publisher@^1.0.12":
+  version "1.0.12"
+  resolved "https://registry.npmjs.org/@bigmogician/publisher/-/publisher-1.0.12.tgz#b4812572d92ca3c90bc14c1bc7075360caaa38f0"
+  integrity sha512-Jw2UHQm7g/WOcn+dhekQ5FzeeHjfob0doW/SQjbLuERaRIarfucxeEV8XuJuT8g0LMzBBAXdLCuXKItONJc1bQ==
   dependencies:
     chalk "^2.4.2"
     commander "^2.19.0"

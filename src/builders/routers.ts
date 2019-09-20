@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fs from "fs";
+import path from "path";
 import rimraf from "rimraf";
 
 export interface IInnerRouterOptions extends IRouterOptions {
@@ -93,11 +94,11 @@ function checkRouterFolders({
   root: string;
   routers: IRouter;
 }) {
-  folders.forEach(path => {
-    if (path.indexOf(".") === -1) {
-      routers[path] = {};
-      const routerFolder = `${routerPath}/${path}`;
-      const ctorFolder = `${ctorPath}/${path}`;
+  folders.forEach(filepath => {
+    if (filepath.indexOf(".") === -1) {
+      routers[filepath] = {};
+      const routerFolder = path.join(routerPath, filepath);
+      const ctorFolder = path.join(ctorPath, filepath);
       if (!fs.existsSync(routerFolder)) {
         fs.mkdirSync(routerFolder);
       }
@@ -108,17 +109,17 @@ function checkRouterFolders({
         ctorPath: ctorFolder,
         routerPath: routerFolder,
         fileType,
-        routers: <IRouter>routers[path],
+        routers: <IRouter>routers[filepath],
         root
       });
     } else {
-      if (checkIfOnlyDeclares(path)) return;
+      if (checkIfOnlyDeclares(filepath)) return;
       createTsRouterFile({
         turn,
         baseRouter,
         ctorPath,
         routerPath,
-        path,
+        path: filepath,
         fileType,
         urlRoot: root,
         routers
@@ -136,7 +137,7 @@ function createTsRouterFile({
   baseRouter,
   ctorPath,
   routerPath,
-  path,
+  path: filepath,
   fileType,
   urlRoot,
   routers
@@ -151,15 +152,17 @@ function createTsRouterFile({
   routers: IRouter;
 }) {
   try {
+    // .开头的文件默认不解析
+    if (filepath.startsWith(".")) return;
     // 尝试按照新版逻辑解析Controller
-    const commonName = path.split(".")[0];
-    const controller = require(`${ctorPath}/${commonName}`);
+    const commonName = filepath.split(".")[0];
+    const controller = require(path.join(ctorPath, commonName));
     // 找不到router源定义，静默退出
     if (!controller.prototype["@router"]) return;
     // 非V2，则判断是老版本的Router
     if (!controller.prototype["@router::v2"]) return;
     const file = createFile(routerPath, baseRouter, commonName, turn, fileType, urlRoot);
-    const _PATH = `${routerPath}/${commonName}.${fileType}`;
+    const _PATH = path.join(routerPath, `${commonName}.${fileType}`);
     if (fs.existsSync(_PATH)) {
       const oldFile = fs.readFileSync(_PATH, { flag: "r" });
       const content = (oldFile.toString() || "").split("\n");
@@ -185,15 +188,18 @@ function createFile(
   const controllerName =
     routerPath === baseRouter
       ? commonName
-      : `${routerPath.replace(`${baseRouter}/`, "").replace(/\//g, ".")}.${commonName}`;
+      : `${path
+          .relative(baseRouter, routerPath)
+          .replace(/\//g, ".")
+          .replace(/\\/g, ".")}.${commonName}`;
   const turnLod = [".."];
   for (let index = 0; index < turn; index++) {
     turnLod.push("..");
   }
   const turnStr =
     routerPath === baseRouter
-      ? `${turnLod.join("/")}/controllers/${commonName}`
-      : `${turnLod.join("/")}/controllers/${routerPath.replace(`${baseRouter}/`, "")}/${commonName}`;
+      ? path.join(...turnLod, "controllers", commonName)
+      : path.join(...turnLod, "controllers", path.relative(baseRouter, routerPath), commonName);
   const file =
     fileType === "ts" ? createTsFile(turnStr, controllerName, urlRoot) : createJsFile(turnStr, controllerName, urlRoot);
   return file;
