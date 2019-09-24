@@ -12,6 +12,7 @@ import {
 
 interface ITransformSharedData {
   coreImportStyle?: "import-require" | "import-from";
+  hasCoreModule?: boolean;
   useDI?: boolean;
 }
 
@@ -106,9 +107,11 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
         },
         (node, _, data: ITransformSharedData) => {
           // 检查@exo/core是否导入，完成导入项补偿
+          if (data.hasCoreModule) return node;
           if (ts.isImportDeclaration(node)) {
             if (ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === CORE_MODULE) {
               data.coreImportStyle = "import-from";
+              data.hasCoreModule = true;
               if (
                 node.importClause &&
                 !!node.importClause.namedBindings &&
@@ -129,6 +132,8 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                   ts.updateImportClause(node.importClause, undefined, ts.createNamedImports(namedEles)),
                   node.moduleSpecifier
                 );
+              } else {
+                return node;
               }
             }
           }
@@ -139,6 +144,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
               node.moduleReference.expression.text === CORE_MODULE
             ) {
               data.coreImportStyle = "import-require";
+              data.hasCoreModule = true;
             }
           }
           return node;
