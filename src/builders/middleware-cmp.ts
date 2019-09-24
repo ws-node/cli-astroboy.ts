@@ -13,6 +13,7 @@ import {
 interface ITransformSharedData {
   coreImportStyle?: "import-require" | "import-from";
   hasCoreModule?: boolean;
+  coreImportCreated?: boolean;
   useDI?: boolean;
 }
 
@@ -152,7 +153,8 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
         (node, sourcefile, data: ITransformSharedData) => {
           const index = sourcefile.statements.findIndex(i => i.kind === node.kind);
           // 补充倒入@exo/core
-          if (index === 0 && !data.coreImportStyle) {
+          if (index === 0 && !data.coreImportStyle && !data.coreImportCreated) {
+            data.coreImportCreated = true;
             return [
               ts.createImportDeclaration(
                 [],
