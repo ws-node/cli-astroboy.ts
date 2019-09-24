@@ -187,7 +187,10 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                 let funcDepts: any[] = [];
                 if (ts.isFunctionDeclaration(target)) {
                   const func = <ts.FunctionDeclaration>target;
-                  const types = func.parameters.map(i => i.type || ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword));
+                  const types = func.parameters
+                    // 排除this类型标示
+                    .filter(i => ts.isIdentifier(i.name) && i.name.text !== "this")
+                    .map(i => i.type || ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword));
                   if (func.parameters.length === 1) {
                     const param = func.parameters[0];
                     if (

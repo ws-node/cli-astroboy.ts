@@ -1,6 +1,6 @@
 {
   "name": "@exoskeleton/cli",
-  "version": "0.0.9-beta.3",
+  "version": "0.0.9-beta.4",
   "main": "index.js",
   "repository": "https://github.com/exoskeleton-astroboy/cli.git",
   "author": "Big Mogician <bigmogician@outlook.com>",
@@ -20,7 +20,8 @@
     "ts-node": "7.0.1",
     "tsconfig-paths": "3.8.0",
     "tslib": "^1.10.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "typescript": "^3.4.5"
   },
   "devDependencies": {
     "@bigmogician/publisher": "^1.0.12",
@@ -31,7 +32,6 @@
     "@types/rimraf": "^2.0.2",
     "@types/uuid": "^3.4.4",
     "tslint": "^5.18.0",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "3.4.5"
+    "tslint-config-prettier": "^1.18.0"
   }
 }
