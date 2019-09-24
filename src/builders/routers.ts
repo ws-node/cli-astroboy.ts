@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 import rimraf from "rimraf";
 
@@ -54,9 +54,9 @@ export function initRouters(
       if (!!always) {
         // 硬核开关，强撸routers文件夹
         rimraf.sync(routerPath);
-        fs.mkdirSync(routerPath);
+        fs.mkdirSync(routerPath, { recursive: true });
       } else if (!fs.existsSync(routerPath)) {
-        fs.mkdirSync(routerPath);
+        fs.mkdirSync(routerPath, { recursive: true });
       }
       checkRouterFolders({
         turn: 0,
@@ -100,7 +100,7 @@ function checkRouterFolders({
       const routerFolder = path.join(routerPath, filepath);
       const ctorFolder = path.join(ctorPath, filepath);
       if (!fs.existsSync(routerFolder)) {
-        fs.mkdirSync(routerFolder);
+        fs.mkdirSync(routerFolder, { recursive: true });
       }
       checkRouterFolders({
         turn: turn + 1,

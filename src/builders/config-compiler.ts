@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 import { ts, visitCompile } from "../compiler/core";
 import { transformImportsPath, wrapAutoRunFunction } from "../compiler/statements";
@@ -44,7 +44,7 @@ export function compileFn(options: Partial<IInnerConfigCompilerOptions>): string
     const cwd = process.cwd();
     const configFolder = path.resolve(cwd, configRoot || defaultConfigCompilerOptions.configRoot!);
     const outputFolder = path.resolve(cwd, outRoot || defaultConfigCompilerOptions.outRoot!);
-    if (!fs.existsSync(configFolder)) fs.mkdirSync(configFolder);
+    if (!fs.existsSync(configFolder)) fs.mkdirSync(configFolder, { recursive: true });
     const watchedFiles = fileList.filter(findTsFiles);
     const useHMR = watchedFiles.length > 0;
     console.log(`root  ==> "${chalk.green(configRoot!)}"`);

@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 import { ts, visitCompile } from "../compiler/core";
 import {
@@ -52,7 +52,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
     const middleRootFolder = path.resolve(cwd, rootFolder || defaultConfigCompilerOptions.rootFolder!);
     const outputFolder = path.resolve(cwd, outFolder || defaultConfigCompilerOptions.outFolder!);
     const EXTENSIONS = !!force ? ".ts" : ".js";
-    if (!fs.existsSync(middleRootFolder)) fs.mkdirSync(middleRootFolder);
+    if (!fs.existsSync(middleRootFolder)) fs.mkdirSync(middleRootFolder, { recursive: true });
     const watchedFiles = fileList.filter(findTsFiles);
     const useHMR = watchedFiles.length > 0;
     console.log(`root  ==> "${chalk.green(rootFolder!)}"`);
@@ -305,7 +305,7 @@ function initCompilePreSteps(middleRootFolder: string, force: boolean, outputFol
         fs.unlinkSync(`${outputFolder}/${p}`);
       });
   } else if (!fs.existsSync(outputFolder)) {
-    fs.mkdirSync(outputFolder);
+    fs.mkdirSync(outputFolder, { recursive: true });
   }
   return files.filter(findTsFiles);
 }
