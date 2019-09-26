@@ -88,6 +88,7 @@ export function runRoutersBuilder(
     console.log(chalk.cyan("⛺️ - BUILDING ROUTERS"));
     console.log("");
     const registerFile = path.resolve(__dirname, "../register");
+    const tscPathMap = require.resolve("tsconfig-paths").replace("/lib/index.js", "/register");
     const initFile = path.resolve(__dirname, "../process/init");
     console.log(`root  ==> "${chalk.green("app/controllers")}"`);
     startChildProcess({
@@ -95,7 +96,7 @@ export function runRoutersBuilder(
       token,
       defineCancel,
       script: initFile,
-      args: type === "fork" ? [] : ["-r", registerFile, initFile],
+      args: type === "fork" ? [] : ["-r", registerFile, "-r", tscPathMap, initFile],
       env: {
         CTOR_PATH: path.resolve(projectRoot, "app/controllers"),
         ROUTER_PATH: path.resolve(projectRoot, "app/routers"),
