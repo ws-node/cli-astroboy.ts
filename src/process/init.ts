@@ -12,7 +12,7 @@ preInitFn(
     fileType: <any>FILE_TYPE,
     appRoot: APP_ROOT,
     ctorFolder: CTOR_PATH,
-    routerFolder: ROUTER_PATH
+    routerFolder: ROUTER_PATH,
   },
   // @ts-ignore
   ({ routers, error }: any) => {
@@ -23,6 +23,7 @@ preInitFn(
         const count = showRoutes(routers);
         console.log(chalk.cyanBright(`\nCOUNT : [${count}]`));
         console.log("");
+        process.exit(0);
       }
     }
   }
@@ -30,7 +31,7 @@ preInitFn(
 
 function showRoutes(obj: any, preK?: string) {
   let count = 0;
-  Object.keys(obj || {}).forEach(k => {
+  Object.keys(obj || {}).forEach((k) => {
     if (typeof obj[k] === "string") {
       console.log(chalk.blueBright(!preK ? `--> ${k}` : `--> ${preK}/${k}`));
       count += 1;
