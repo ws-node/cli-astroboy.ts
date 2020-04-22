@@ -66,7 +66,7 @@ export const DevPlugin: ICommandPlugin = {
     ["-M, --mock [proxyUrl]", "开启 mock 模式，默认 proxy 地址为 http://127.0.0.1:8001"],
     ["-T, --tsconfig [config]", "使用自定义的ts编译配置文件"],
     ["-I, --inspect [inspect]", "启用inspector，开启编辑器断点调试"],
-    ["--compile", "启用编译"]
+    ["--compile", "启用编译"],
   ],
   help: () => {
     console.log("");
@@ -88,7 +88,7 @@ export const DevPlugin: ICommandPlugin = {
   async action(_, command: IDevCmdOptions) {
     if (_ !== "dev") return;
     return action(false, command);
-  }
+  },
 };
 
 export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
@@ -107,12 +107,12 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     config.env = {
       ...config.env,
       NODE_ENV: command.env ? command.env : config.env.NODE_ENV || "development",
-      NODE_PORT: command.port ? command.port : config.env.NODE_PORT || 8201
+      NODE_PORT: command.port ? command.port : config.env.NODE_PORT || 8201,
     };
   } else {
     config.env = {
       NODE_ENV: command.env ? command.env : "development",
-      NODE_PORT: command.port ? command.port : 8201
+      NODE_PORT: command.port ? command.port : 8201,
     };
   }
   if (config.watch === false) {
@@ -121,7 +121,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     config.watch = [
       path.join(projectRoot, "app/**/*.*"),
       path.join(projectRoot, "config/**/*.*"),
-      path.join(projectRoot, "plugins/**/*.*")
+      path.join(projectRoot, "plugins/**/*.*"),
     ];
   }
   if (config.ignore === false) {
@@ -152,7 +152,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   if (config.configCompiler) {
     const { enabled = false, configroot = "", increment = true } = {
       ...defaultC,
-      ...config.configCompiler
+      ...config.configCompiler,
     };
     useConfigHMR = increment;
     configWatchRoot = path.resolve(projectRoot, configroot);
@@ -165,7 +165,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   if (config.middlewareCompiler) {
     const { enabled = false, root = "", increment = true } = {
       ...defaultM,
-      ...config.middlewareCompiler
+      ...config.middlewareCompiler,
     };
     useMiddlewareHMR = increment;
     middleWatchRoot = path.resolve(projectRoot, root);
@@ -177,7 +177,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
   if (config.routers) {
     const { enabled = false } = {
       ...defaultR,
-      ...config.routers
+      ...config.routers,
     };
     ctorRoot = path.resolve(projectRoot, ctorRoot);
     if (enabled && (config.compile || onlyCompile)) useRouterBuilds = true;
@@ -229,7 +229,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         const compileConf = {
           ...defaultC,
           ...conf,
-          tsconfig: conf.tsconfig || config.tsconfig
+          tsconfig: conf.tsconfig || config.tsconfig,
         };
         await doActionAwait(runConfigCompile, projectRoot, compileConf, options);
       }
@@ -246,7 +246,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         const compileConf = {
           ...defaultM,
           ...conf,
-          tsconfig: conf.tsconfig || config.tsconfig
+          tsconfig: conf.tsconfig || config.tsconfig,
         };
         await doActionAwait(runMiddlewareCompile, projectRoot, compileConf, options);
       }
@@ -263,7 +263,8 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         const compileConf = {
           ...defaultR,
           ...conf,
-          tsconfig: conf.tsconfig || config.tsconfig
+          tsconfig: conf.tsconfig || config.tsconfig,
+          env: config.env,
         };
         await doActionAwait(runRoutersBuilder, projectRoot, compileConf, options);
       }
@@ -297,13 +298,13 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     token: refreshToken(),
     checkProcess: undefined,
     mainProcess: undefined,
-    changes: []
+    changes: [],
   };
 
   const { watch = [], ignore: ignored = [] } = config;
   // 1.5s变更内重复视为无效
   const onFilesChanged = throttle(invokeWhenFilesCHanged, 1500, {
-    trailing: false
+    trailing: false,
   });
   chokidar.watch(watch, { ignored }).on("change", onFilesChanged);
 
@@ -365,7 +366,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     console.log("");
     console.log(chalk.yellow(FILES_CHANGED));
     console.log("");
-    forkConfig.changes.forEach(each => {
+    forkConfig.changes.forEach((each) => {
       console.log(chalk.magenta(path.relative(projectRoot, each)));
     });
     console.log("");
@@ -389,7 +390,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
 
   async function reCompile() {
     if (useConfigHMR) {
-      const changedConfigs = forkConfig.changes.filter(i => i.startsWith(configWatchRoot));
+      const changedConfigs = forkConfig.changes.filter((i) => i.startsWith(configWatchRoot));
       if (changedConfigs.length > 0) {
         console.log("");
         console.log(chalk.yellow(CONF_RELOAD));
@@ -400,7 +401,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         await runConfigs({
           // 暂时不做取消逻辑
           // type: "fork",
-          changes: changedConfigs
+          changes: changedConfigs,
           // token: forkConfig.token,
           // defineCancel(child: ChildProcess, token: CancellationToken) {
           //   child.on("message", data => console.log(data));
@@ -410,7 +411,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
       }
     }
     if (useMiddlewareHMR) {
-      const changedMiddles = forkConfig.changes.filter(i => i.startsWith(middleWatchRoot));
+      const changedMiddles = forkConfig.changes.filter((i) => i.startsWith(middleWatchRoot));
       if (changedMiddles.length > 0) {
         console.log("");
         console.log(chalk.yellow(MIDDLES_RELOAD));
@@ -442,9 +443,9 @@ async function startMainProcess(config: IForkCmdOptions) {
     config.mainProcess = spawn("node", [...config.args, config.command], {
       env: {
         ...process.env,
-        ...config.env
+        ...config.env,
       },
-      stdio: ["pipe", process.stdout, process.stderr]
+      stdio: ["pipe", process.stdout, process.stderr],
     });
   }
   return config.mainProcess;
@@ -476,8 +477,8 @@ function startTypeCheck(projectRoot: string, config: IForkCmdOptions, token: Can
   console.log("");
   const child = childProcess.fork(script, [], {
     env: {
-      TSCONFIG: path.resolve(projectRoot, config.tsconfig || "tsconfig.json")
-    }
+      TSCONFIG: path.resolve(projectRoot, config.tsconfig || "tsconfig.json"),
+    },
   });
   child.on("message", (message: { diagnostics?: NormalizedMessage[] }) => {
     const { diagnostics } = message;
@@ -490,7 +491,7 @@ function startTypeCheck(projectRoot: string, config: IForkCmdOptions, token: Can
         return;
       }
       console.log(chalk.blue(`Type Syntax Errors : ${diagnostics.length}\n`));
-      diagnostics.forEach(item => {
+      diagnostics.forEach((item) => {
         const { type: _, code, severity, content, file, line, character } = item;
         console.log(
           chalk[severity === "error" ? "red" : "yellow"](

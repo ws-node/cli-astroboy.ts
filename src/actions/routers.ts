@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import get from "lodash/get";
 import path from "path";
-import { ICommandPlugin, IIntergradeOptions, IRouterConfig } from "../base";
+import { ICommandPlugin, IIntergradeOptions, IRouterConfig, Env } from "../base";
 import { CancellationToken } from "../utils/cancellation-token";
 import { startChildProcess } from "../utils/execChild";
 import { loadConfig } from "../utils/load-config";
@@ -27,7 +27,7 @@ export const RouterPlugin: ICommandPlugin = {
     ["-F, --filetype [fileType]", "set routers fileType"],
     ["-R, --approot [appRoot]", "set routers-root"],
     ["-T, --tsconfig [tsconfig]", "set tsconfig.json"],
-    ["-D, --details [showRouters]", "show building results or not"]
+    ["-D, --details [showRouters]", "show building results or not"],
   ],
   help: () => {
     console.log("");
@@ -49,14 +49,14 @@ export const RouterPlugin: ICommandPlugin = {
     const defaultConfigs = {
       ...TRANSFROM.routers({}),
       details: true,
-      enabled: true
+      enabled: true,
     };
     try {
       const req = loadConfig(projectRoot, fileName);
       config = {
         ...defaultConfigs,
         ...get(req, "routers", {}),
-        tsconfig: req.tsconfig || "tsconfig.json"
+        tsconfig: req.tsconfig || "tsconfig.json",
       };
     } catch (_) {
       config = defaultConfigs;
@@ -72,12 +72,12 @@ export const RouterPlugin: ICommandPlugin = {
     }
 
     runRoutersBuilder(projectRoot, config);
-  }
+  },
 };
 
 export function runRoutersBuilder(
   projectRoot: string,
-  config: IRouterConfig,
+  config: Env<IRouterConfig>,
   intergradeOptions: IIntergradeOptions<CancellationToken> = {},
   then?: (success: boolean, error?: Error) => void
 ) {
@@ -98,6 +98,7 @@ export function runRoutersBuilder(
       script: initFile,
       args: type === "fork" ? [] : ["-r", registerFile, "-r", tscPathMap, initFile],
       env: {
+        ...config.env,
         CTOR_PATH: path.resolve(projectRoot, "app/controllers"),
         ROUTER_PATH: path.resolve(projectRoot, "app/routers"),
         ASTT_ENABLED: config.enabled === undefined ? "true" : String(!!config.enabled === true),
@@ -105,14 +106,14 @@ export function runRoutersBuilder(
         APP_ROOT: config.approot || "",
         FILE_TYPE: config.filetype || "js",
         SHOW_ROUTERS: String(!!config.details),
-        __TSCONFIG: config.tsconfig || "_"
-      }
+        __TSCONFIG: config.tsconfig || "_",
+      },
     })
       .then(() => {
         console.log(chalk.green("✅ - BUILD ROUTERS OVER"));
         then && then(true);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(chalk.yellow("❌ - BUILD ROUTERS FAILED"));
         console.log("");
         if (then) {
@@ -132,7 +133,7 @@ export function runRoutersBuilder(
 
 function showRoutes(obj: any, preK?: string) {
   let count = 0;
-  Object.keys(obj || {}).forEach(k => {
+  Object.keys(obj || {}).forEach((k) => {
     if (typeof obj[k] === "string") {
       console.log(chalk.blue(!preK ? `--> ${k}` : `--> ${preK}/${k}`));
       count += 1;
