@@ -135,7 +135,6 @@ function checkIfOnlyDeclares(p: string): any {
 function createTsRouterFile({
   turn,
   baseRouter,
-  ctorPath,
   routerPath,
   path: filepath,
   fileType,
@@ -156,11 +155,12 @@ function createTsRouterFile({
     if (filepath.startsWith(".")) return;
     // 尝试按照新版逻辑解析Controller
     const commonName = filepath.split(".")[0];
-    const controller = require(path.join(ctorPath, commonName));
-    // 找不到router源定义，静默退出
-    if (!controller.prototype["@router"]) return;
-    // 非V2，则判断是老版本的Router
-    if (!controller.prototype["@router::v2"]) return;
+    // 新版不兼容旧版控制器逻辑、也不再做安全检查
+    // const controller = require(path.join(ctorPath, commonName));
+    // // 找不到router源定义，静默退出
+    // if (!controller.prototype["@router"]) return;
+    // // 非V2，则判断是老版本的Router
+    // if (!controller.prototype["@router::v2"]) return;
     const file = createFile(routerPath, baseRouter, commonName, turn, fileType, urlRoot);
     const _PATH = path.join(routerPath, `${commonName}.${fileType}`);
     if (fs.existsSync(_PATH)) {
