@@ -6,6 +6,7 @@ export const config: IConfig = {
   useYarn: false,
   whiteSpace: "  ",
   debug: false,
+  register: "https://registry.npmjs.org",
   outTransform: json => ({
     ...json,
     main: "index.js",

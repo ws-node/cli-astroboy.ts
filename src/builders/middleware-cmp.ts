@@ -130,7 +130,7 @@ export function middlewareCompileFn(options: Partial<IInnerMiddlewareCompilerOpt
                   node,
                   [],
                   [],
-                  ts.updateImportClause(node.importClause, undefined, ts.createNamedImports(namedEles)),
+                  ts.updateImportClause(node.importClause, undefined, ts.createNamedImports(namedEles), node.importClause.isTypeOnly),
                   node.moduleSpecifier
                 );
               } else {

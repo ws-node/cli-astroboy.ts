@@ -222,7 +222,7 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
     config.env.HTTPS_PROXY = url;
   }
 
-  async function runConfigs(options: IIntergradeOptions<CancellationToken> = {}) {
+  async function runConfigs(options: IIntergradeOptions<CancellationToken> = {}, throws = false) {
     try {
       if (useConfigCompile) {
         const conf = config.configCompiler || {};
@@ -234,12 +234,16 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         await doActionAwait(runConfigCompile, projectRoot, compileConf, options);
       }
     } catch (error) {
-      console.log(chalk.red(error));
-      return;
+      if(throws) {
+        throw error;
+      } else {
+        console.log(chalk.red(error));
+        return;
+      }
     }
   }
 
-  async function runMiddlewares(options: IIntergradeOptions<CancellationToken> = {}) {
+  async function runMiddlewares(options: IIntergradeOptions<CancellationToken> = {}, throws = false) {
     try {
       if (useMiddlewareCompile) {
         const conf = config.middlewareCompiler || {};
@@ -251,12 +255,16 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         await doActionAwait(runMiddlewareCompile, projectRoot, compileConf, options);
       }
     } catch (error) {
-      console.log(chalk.red(error));
-      return;
+      if(throws) {
+        throw error;
+      } else {
+        console.log(chalk.red(error));
+        return;
+      }
     }
   }
 
-  async function runRouters(options: IIntergradeOptions<CancellationToken> = {}) {
+  async function runRouters(options: IIntergradeOptions<CancellationToken> = {}, throws = false) {
     try {
       if (useRouterBuilds) {
         const conf = config.routers || {};
@@ -269,14 +277,18 @@ export async function action(onlyCompile: boolean, command: IDevCmdOptions) {
         await doActionAwait(runRoutersBuilder, projectRoot, compileConf, options);
       }
     } catch (error) {
-      console.log(chalk.red(error));
-      return;
+      if(throws) {
+        throw error;
+      } else {
+        console.log(chalk.red(error));
+        return;
+      }
     }
   }
 
-  await runConfigs();
-  await runMiddlewares();
-  await runRouters();
+  await runConfigs({}, true);
+  await runMiddlewares({}, true);
+  await runRouters({}, true);
 
   if (onlyCompile) {
     console.log("");
